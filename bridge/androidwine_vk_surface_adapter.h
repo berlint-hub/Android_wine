@@ -5,68 +5,49 @@
 #ifndef ANDROIDWINE_VK_SURFACE_ADAPTER_H
 #define ANDROIDWINE_VK_SURFACE_ADAPTER_H
 
-/* Required Vulkan platform declarations; no Android SDK headers are used. */
-#ifndef VK_USE_PLATFORM_ANDROID_KHR
-#define VK_USE_PLATFORM_ANDROID_KHR
-#endif
-#ifndef VK_USE_PLATFORM_VI_NN
-#define VK_USE_PLATFORM_VI_NN
-#endif
-#include <vulkan/vulkan.h>
+#include "androidwine_native_window.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*
- * One explicitly registered Android-side window handle maps to one Horizon
- * window. The ANativeWindow pointer is still an opaque token, not an Android
- * ABI-compatible object. The runtime must own its real ABI and lifecycle.
- */
+/* One AndroidWine-owned ANativeWindow is associated with one Horizon window. */
 struct androidwine_vk_surface_adapter {
-    const struct ANativeWindow *android_window;
+    ANativeWindow *android_window;
     void *horizon_window;
     PFN_vkCreateViSurfaceNN create_vi_surface;
-    uint32_t width;
-    uint32_t height;
-    uint32_t window_references;
     uint32_t surface_references;
-    uint64_t geometry_generation;
     VkBool32 active;
 };
 
-/* Zero-initialize the adapter before first use. Binding starts with one owner
- * reference; width/height may be zero until the runtime reports initial geometry.
- * A live binding cannot be overwritten; unbind it after destroying all surfaces. */
+/* Zero-initialize before use. The window object must already be initialized. */
 VkBool32 androidwine_vk_surface_adapter_bind(
     struct androidwine_vk_surface_adapter *adapter,
-    const struct ANativeWindow *android_window,
+    ANativeWindow *android_window,
     void *horizon_window,
-    uint32_t width,
-    uint32_t height,
     PFN_vkCreateViSurfaceNN create_vi_surface);
 
 VkBool32 androidwine_vk_surface_adapter_acquire_window(
     struct androidwine_vk_surface_adapter *adapter,
-    const struct ANativeWindow *android_window);
+    ANativeWindow *android_window);
 
 VkBool32 androidwine_vk_surface_adapter_release_window(
     struct androidwine_vk_surface_adapter *adapter,
-    const struct ANativeWindow *android_window);
+    ANativeWindow *android_window);
 
 VkBool32 androidwine_vk_surface_adapter_update_geometry(
     struct androidwine_vk_surface_adapter *adapter,
-    const struct ANativeWindow *android_window,
-    uint32_t width,
-    uint32_t height);
+    ANativeWindow *android_window,
+    int32_t width,
+    int32_t height);
 
 VkBool32 androidwine_vk_surface_adapter_unbind(
     struct androidwine_vk_surface_adapter *adapter);
 
 /*
- * Deliberately a shim function, not an exported Vulkan loader entry point.
- * It retains the registered window for the lifetime of each created surface
- * and translates the Android request into VK_NN_vi_surface for NXVK.
+ * Direct shim used by the prototype; not yet exported via a Vulkan loader.
+ * It retains the NDK-style window object for each created surface and
+ * translates VkAndroidSurfaceCreateInfoKHR into VK_NN_vi_surface.
  */
 VkResult androidwine_vkCreateAndroidSurfaceKHR(
     struct androidwine_vk_surface_adapter *adapter,
@@ -75,7 +56,6 @@ VkResult androidwine_vkCreateAndroidSurfaceKHR(
     const VkAllocationCallbacks *allocator,
     VkSurfaceKHR *surface);
 
-/* Paired wrapper to release the surface-held window reference. */
 void androidwine_vkDestroyAndroidSurfaceKHR(
     struct androidwine_vk_surface_adapter *adapter,
     VkInstance instance,

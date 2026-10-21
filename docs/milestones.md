@@ -37,7 +37,7 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 - [x] Add a dedicated NRO smoke test that uses the adapter, creates a VI swapchain and attempts 60 presents; keep it separate from the nine upstream NXVK pass claims.
 - [x] Build and publish the adapter NRO through the NXVK GitHub Actions workflow (run `39630991475`; artifact `androidwine-nxvk-vulkan-41be63f328c4cd01954a6fd437cfa44492f59573`).
 - [x] Run the new NRO on the user's Switch; user log reports a passing adapter contract and 60/60 presents (2026-10-21).
-- [ ] Replace the synthetic token with a real Android-window surrogate/lifecycle API and design the Vulkan loader boundary; do not claim Android APK/NativeActivity support yet.
+- [x] Record that this revision's synthetic token is only an adapter test, not an Android ABI, Vulkan loader, or APK/NativeActivity runtime. Later object/function work is tracked separately below.
 
 **Scope and test instructions:** [docs/android-horizon-bridge.md](android-horizon-bridge.md). The passed revision used a synthetic pointer token. It is not an `ANativeWindow` ABI, Android loader export, JNI/ART implementation, or APK runner.
 
@@ -46,10 +46,20 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 - [x] Add owner/window reference accounting, geometry and generation state, surface-held references, and paired surface destruction to the internal adapter contract.
 - [x] Extend the Switch NRO to test geometry-not-ready rejection, acquire/release balance, Activity-owner release while a Vulkan surface keeps the window alive, surface destruction, and stale-window rejection.
 - [x] Build the updated lifecycle NRO in GitHub Actions (run `39640954599`; artifact `androidwine-nxvk-vulkan-699679e247353df892550d95cfef29e5ae9f5387`).
-- [ ] Run that updated NRO on Switch and report its lifecycle markers and present count.
-- [ ] Only then design the actual Android-compatible `ANativeWindow` object ABI and entry points.
+- [x] Run the updated NRO on Switch; user log reports all lifecycle markers and 60/60 presents (2026-10-21).
+- [x] Complete the lifecycle-accounting run on Switch; the supplied log reports every marker and 60/60 presents (2026-10-21).
+- [ ] Implement a minimal public NDK-compatible `ANativeWindow` object/function subset. Keep loader and JNI integration as separate gates.
 
-**Caveat:** the internal pointer is still synthetic. These counters and size fields are not Android's ABI implementation and do not make the previous hardware pass carry over to this revision.
+**Caveat:** this hardware-tested revision still uses a synthetic pointer token. Its counters and geometry fields are not Android's ABI implementation and do not provide APK/NativeActivity support.
+
+## 0.9 — Opaque NDK-shaped ANativeWindow subset (Switch-side source; hardware pending)
+
+- [x] Replace the smoke test's token with a privately allocated, opaque AndroidWine window object linked to Horizon `NWindow`.
+- [x] Implement a narrow public NDK-shaped function subset: acquire/release, width/height/format queries, and `setBuffersGeometry` default/current-size behavior.
+- [x] Extend the NRO test for geometry readiness, supported and unsupported geometry requests, lifetime retention, stale use, and 60 VI presents.
+- [ ] Build this revision in GitHub Actions and run its artifact on Switch; earlier hardware passes cover only the prior synthetic-token revisions.
+
+**Caveat:** these function symbols are directly linked into the smoke NRO. This remains a prototype, not Android's private `ANativeWindow` ABI, `libandroid.so`, Android Vulkan loader, JNI/ART, NativeActivity, or APK runtime.
 
 ## 1 — APK inspection (host tool)
 

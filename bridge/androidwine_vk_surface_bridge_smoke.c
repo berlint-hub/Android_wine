@@ -2,16 +2,19 @@
  * AndroidWine's first Android-surface-to-Horizon adapter contract test.
  * Copyright (c) 2026 Berlint. MIT License; see the repository LICENSE.
  *
- * This test deliberately uses a synthetic opaque ANativeWindow token. It tests
- * the adapter's Android surface request -> VK_NN_vi_surface translation on the
- * Switch; it does not implement ANativeWindow, ART, JNI, or APK loading.
+ * This test exercises AndroidWine's small public NDK ANativeWindow function
+ * subset and its direct surface request -> VK_NN_vi_surface translation. It
+ * does not implement Android's private native-window ABI, ART, JNI, or APK loading.
  */
 #define VK_USE_PLATFORM_ANDROID_KHR
 #include "nvk_harness.h"
+#include "androidwine_native_window.h"
 #include "androidwine_vk_surface_adapter.h"
-/* NXVK's one-source smoke build compiles the small adapter into this test NRO. */
+/* NXVK's one-source smoke build compiles the adapter subset into this test NRO. */
+#include "androidwine_native_window.c"
 #include "androidwine_vk_surface_adapter.c"
 
+#include <errno.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -21,8 +24,8 @@
 int main(void)
 {
     nvk_log_open("sdmc:/androidwine_surface_bridge.log");
-    LOG("=== AndroidWine Android-surface -> VI bridge contract ===");
-    LOG("scope=synthetic_window_token; no Android runtime or APK loader");
+    LOG("=== AndroidWine ANativeWindow subset -> VI bridge contract ===");
+    LOG("scope=public NDK function subset; no Android private ABI, loader or APK runtime");
 
     const char *instance_extensions[] = {
         VK_KHR_SURFACE_EXTENSION_NAME,
@@ -40,6 +43,9 @@ int main(void)
     VkImage *images = NULL;
     uint32_t image_count = 0;
     struct androidwine_vk_surface_adapter adapter = {0};
+    ANativeWindow *android_window = NULL;
+    ANativeWindow *unregistered_window = NULL;
+    NWindow *horizon_window = NULL;
     bool passed = false;
     uint32_t presented = 0;
 
@@ -91,27 +97,34 @@ int main(void)
         goto cleanup;
     }
 
-    /* ANativeWindow is opaque to Vulkan. This stable token stands in for the
-     * object an Android runtime would create and register for an Activity. */
-    union { uint64_t alignment; unsigned char token; } android_window_token;
-    union { uint64_t alignment; unsigned char token; } unregistered_window_token;
-    struct ANativeWindow *android_window =
-        (struct ANativeWindow *)&android_window_token;
-    struct ANativeWindow *unregistered_window =
-        (struct ANativeWindow *)&unregistered_window_token;
-    NWindow *horizon_window = nwindowGetDefault();
+    /* AndroidWine-owned public-function subset; these are real objects, not
+     * pointer tokens, but still are not Android's private native-window ABI. */
+    horizon_window = nwindowGetDefault();
     if (horizon_window == NULL) {
         LOG("FAIL: nwindowGetDefault returned NULL");
         goto cleanup;
     }
+    android_window = androidwine_anative_window_create(horizon_window, 0, 0, 1);
+    unregistered_window = androidwine_anative_window_create(horizon_window, 1280, 720, 1);
+    if (android_window == NULL || unregistered_window == NULL) {
+        LOG("FAIL: ANativeWindow subset allocation");
+        goto cleanup;
+    }
+    if (ANativeWindow_getWidth(android_window) != 0 ||
+        ANativeWindow_getHeight(android_window) != 0 ||
+        ANativeWindow_getFormat(android_window) != 1) {
+        LOG("FAIL: ANativeWindow geometry/format queries before readiness");
+        goto cleanup;
+    }
 
     if (!androidwine_vk_surface_adapter_bind(&adapter, android_window,
-                                              horizon_window, 0, 0, CreateViSurfaceNN)) {
+                                              horizon_window, CreateViSurfaceNN)) {
         LOG("FAIL: adapter rejected valid Android/Horizon window binding");
         goto cleanup;
     }
-    LOG("window_binding=registered opaque Android token -> NWindow refs=%u geometry_generation=%llu",
-        adapter.window_references, (unsigned long long)adapter.geometry_generation);
+    LOG("window_binding=ANativeWindow subset -> NWindow refs=%u geometry_generation=%llu",
+        androidwine_anative_window_reference_count(android_window),
+        (unsigned long long)androidwine_anative_window_geometry_generation(android_window));
 
     VkAndroidSurfaceCreateInfoKHR android_surface_info = {
         .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
@@ -137,7 +150,7 @@ int main(void)
         goto cleanup;
     }
     android_surface_info.flags = 0;
-    android_surface_info.pNext = &android_window_token;
+    android_surface_info.pNext = android_window;
     result = androidwine_vkCreateAndroidSurfaceKHR(
         &adapter, context.instance, &android_surface_info, NULL, &rejected_surface);
     if (result != VK_ERROR_FEATURE_NOT_PRESENT || rejected_surface != VK_NULL_HANDLE) {
@@ -155,29 +168,53 @@ int main(void)
     }
     LOG("window_without_geometry=correctly_rejected");
 
+    ANativeWindow_acquire(android_window);
+    if (androidwine_anative_window_reference_count(android_window) != 2) {
+        LOG("FAIL: public ANativeWindow_acquire did not retain the object");
+        goto cleanup;
+    }
+    ANativeWindow_release(android_window);
+    if (androidwine_anative_window_reference_count(android_window) != 1) {
+        LOG("FAIL: public ANativeWindow_release did not balance the reference");
+        goto cleanup;
+    }
+    LOG("anativewindow_acquire_release=balanced");
+
     if (!androidwine_vk_surface_adapter_acquire_window(&adapter, android_window) ||
-        adapter.window_references != 2 ||
+        androidwine_anative_window_reference_count(android_window) != 2 ||
         !androidwine_vk_surface_adapter_release_window(&adapter, android_window) ||
-        adapter.window_references != 1) {
-        LOG("FAIL: Android window acquire/release reference accounting");
+        androidwine_anative_window_reference_count(android_window) != 1) {
+        LOG("FAIL: ANativeWindow acquire/release reference accounting");
         goto cleanup;
     }
     if (!androidwine_vk_surface_adapter_update_geometry(&adapter, android_window,
                                                          1280, 720) ||
-        adapter.width != 1280 || adapter.height != 720 ||
-        adapter.geometry_generation != 1) {
+        ANativeWindow_getWidth(android_window) != 1280 ||
+        ANativeWindow_getHeight(android_window) != 720 ||
+        androidwine_anative_window_geometry_generation(android_window) != 1) {
         LOG("FAIL: initial Android window geometry registration");
         goto cleanup;
     }
-    LOG("window_references=acquire/release balanced; geometry=%ux%u generation=%llu",
-        adapter.width, adapter.height, (unsigned long long)adapter.geometry_generation);
+    if (ANativeWindow_setBuffersGeometry(android_window, 0, 0, 0) != 0 ||
+        ANativeWindow_setBuffersGeometry(android_window, 640, 480, 1) != -EINVAL ||
+        ANativeWindow_getWidth(android_window) != 1280 ||
+        ANativeWindow_getHeight(android_window) != 720 ||
+        ANativeWindow_getFormat(android_window) != 1) {
+        LOG("FAIL: setBuffersGeometry no-op/unsupported-resize contract");
+        goto cleanup;
+    }
+    LOG("window_references=acquire/release balanced; geometry=%dx%d format=%d generation=%llu",
+        ANativeWindow_getWidth(android_window), ANativeWindow_getHeight(android_window),
+        ANativeWindow_getFormat(android_window),
+        (unsigned long long)androidwine_anative_window_geometry_generation(android_window));
 
     result = androidwine_vkCreateAndroidSurfaceKHR(
         &adapter, context.instance, &android_surface_info, NULL, &surface);
     LOG("androidwine_vkCreateAndroidSurfaceKHR -> %d", result);
     if (result != VK_SUCCESS || surface == VK_NULL_HANDLE)
         goto cleanup;
-    if (adapter.window_references != 2 || adapter.surface_references != 1) {
+    if (androidwine_anative_window_reference_count(android_window) != 2 ||
+        adapter.surface_references != 1) {
         LOG("FAIL: created surface did not retain its Android window");
         goto cleanup;
     }
@@ -189,7 +226,8 @@ int main(void)
     LOG("unbind_with_live_surface=correctly_rejected");
     LOG("surface_translation=VK_KHR_android_surface request -> VK_NN_vi_surface");
     if (!androidwine_vk_surface_adapter_release_window(&adapter, android_window) ||
-        adapter.window_references != 1 || adapter.active != VK_TRUE) {
+        androidwine_anative_window_reference_count(android_window) != 1 ||
+        adapter.active != VK_TRUE) {
         LOG("FAIL: releasing Activity owner invalidated a surface-held window reference");
         goto cleanup;
     }
@@ -453,21 +491,26 @@ int main(void)
         androidwine_vkDestroyAndroidSurfaceKHR(&adapter, context.instance, surface,
                                                NULL, DestroySurfaceKHR);
         surface = VK_NULL_HANDLE;
-        if (adapter.window_references != 0 || adapter.surface_references != 0 ||
-            adapter.active != VK_FALSE) {
+        if (androidwine_anative_window_reference_count(android_window) != 0 ||
+            adapter.surface_references != 0 ||
+            androidwine_anative_window_is_valid(android_window) != VK_FALSE) {
             LOG("FAIL: destroying the last surface did not release/invalidate the window");
             goto cleanup;
         }
         result = androidwine_vkCreateAndroidSurfaceKHR(
             &adapter, context.instance, &android_surface_info, NULL, &rejected_surface);
-        if (result != VK_ERROR_SURFACE_LOST_KHR || rejected_surface != VK_NULL_HANDLE) {
-            LOG("FAIL: stale window after final release must be rejected (result=%d)", result);
+        if (result != VK_ERROR_SURFACE_LOST_KHR || rejected_surface != VK_NULL_HANDLE ||
+            ANativeWindow_getWidth(android_window) != 0 ||
+            ANativeWindow_getHeight(android_window) != 0 ||
+            ANativeWindow_setBuffersGeometry(android_window, 0, 0, 0) != -EINVAL) {
+            LOG("FAIL: stale ANativeWindow functions/surface must reject use (result=%d)", result);
             goto cleanup;
         }
         if (!androidwine_vk_surface_adapter_unbind(&adapter)) {
             LOG("FAIL: adapter refused to unbind after all surface references were released");
             goto cleanup;
         }
+        LOG("anativewindow_functions=acquire,release,getWidth,getHeight,getFormat,setBuffersGeometry PASSED");
         LOG("window_lifecycle=owner-release, surface-retain, surface-destroy, stale-reject PASSED");
         LOG("=== ANDROIDWINE_SURFACE_BRIDGE_CONTRACT PASSED ===");
         passed = true;
@@ -492,6 +535,12 @@ cleanup:
     free(images);
     if (adapter.android_window != NULL)
         (void)androidwine_vk_surface_adapter_unbind(&adapter);
+    while (androidwine_anative_window_reference_count(android_window) != 0)
+        ANativeWindow_release(android_window);
+    while (androidwine_anative_window_reference_count(unregistered_window) != 0)
+        ANativeWindow_release(unregistered_window);
+    androidwine_anative_window_destroy(android_window);
+    androidwine_anative_window_destroy(unregistered_window);
 
 teardown:
     nvk_teardown(&context);
