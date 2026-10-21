@@ -55,6 +55,9 @@ $(BUILD):
 	@mkdir -p "$@"
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
+$(OUTPUT).elf: $(OFILES)
+$(OFILES_SRC): $(HFILES_BIN)
+
 else
 
 .PHONY: all
