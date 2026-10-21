@@ -24,7 +24,7 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 
 - [x] Add a minimal NativeActivity APK probing Android Vulkan loader/extensions, `ANativeWindow` surface, graphics/present queue, swapchain, and 180 clear/present frames.
 - [x] Add a pinned GitHub Actions Android SDK/NDK/Gradle build and reproducible install/log-capture instructions.
-- [ ] Obtain a successful CI APK build and artifact.
+- [x] Build the arm64 debug APK in GitHub Actions (run `39622901010`; artifact `androidwine-android-vulkan-smoke-e5cbcbe0d3ab92e3305e9beba17b5ae8df047d20`).
 - [ ] Run on an Android arm64 device; retain device details and logcat/private app logs.
 - [ ] Compare Android results with the already-passing native NXVK `VK_NN_vi_surface` tests; do not infer an Android-to-Horizon bridge from either result alone.
 

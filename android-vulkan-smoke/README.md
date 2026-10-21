@@ -12,7 +12,7 @@ It does not load or run APKs on Switch, implement an Android-to-Horizon bridge, 
 
 ## Build
 
-The reproducible CI build is `.github/workflows/build-android-vulkan-smoke.yml`. It pins Java 17, Gradle 8.9, Android platform/build tools 35, NDK `27.2.12479018`, CMake `3.22.1`, and builds only `arm64-v8a`. Run it through GitHub Actions (`workflow_dispatch`) or push a change under this directory. Download the workflow artifact named `androidwine-android-vulkan-smoke-<commit>`; it contains the debug APK and `SHA256SUMS.txt`.
+The reproducible CI build is `.github/workflows/build-android-vulkan-smoke.yml`. It pins Java 17, Gradle 8.9, Android platform/build tools 35, NDK `27.2.12479018`, CMake `3.22.1`, and builds only `arm64-v8a`. Run it through GitHub Actions (`workflow_dispatch`) or push a change under this directory. The first successful build is run [`39622901010`](https://github.com/berlint-hub/Android_wine/actions/runs/39622901010). Download its artifact `androidwine-android-vulkan-smoke-e5cbcbe0d3ab92e3305e9beba17b5ae8df047d20` (and future `androidwine-android-vulkan-smoke-<commit>` artifacts); it contains the debug APK and `SHA256SUMS.txt`.
 
 With those components installed locally:
 
