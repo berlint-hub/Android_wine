@@ -2,7 +2,7 @@
 
 This test moves beyond the Horizon-only probe and asks whether the pinned NXVK driver can initialize Vulkan and present frames on the Switch. It is still **not** an Android runtime and does not launch Unity or an APK.
 
-The GitHub Actions workflow `.github/workflows/build-nxvk-vulkan.yml` checks out NXVK at commit `1b7c38f6151b7cde61500d0a1e984b984587f706`, builds its upstream test programs, and uploads two `.nro` files. The first successful build was run `39589514932`; its artifact is `androidwine-nxvk-vulkan-e754aee4451893aeb113a5e3fc55ecbbe41c7915` (available for 14 days from the run). This is a substantial Mesa/NVK cross-build; the workflow can take a while. Dispatch it manually from **Actions → Build NXVK Vulkan smoke tests → Run workflow**, or use the artifact attached to a successful run.
+The GitHub Actions workflow `.github/workflows/build-nxvk-vulkan.yml` checks out NXVK at commit `1b7c38f6151b7cde61500d0a1e984b984587f706`, builds its upstream test programs, and uploads three `.nro` files. The current three-test artifact is `androidwine-nxvk-vulkan-76da3a07932e0c9e345923e72766868d89186fc0` from run `39595030407` (available for 14 days from the run). This is a substantial Mesa/NVK cross-build; the workflow can take a while. Dispatch it manually from **Actions → Build NXVK Vulkan smoke tests → Run workflow**, or use the artifact attached to a successful run.
 
 ## Tests
 
