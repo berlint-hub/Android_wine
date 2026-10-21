@@ -24,7 +24,7 @@ The expected output is `androidwine_probe.nro` in the repository root. The curre
 3. Wait for the probe screen. Press **A** once to add a marker to the log; press **Plus** to exit cleanly.
 4. Copy `sdmc:/switch/androidwine/androidwine.log` off the card and share that text log.
 
-The log appends a new boot/exit section on each run. It records the libnx/SD mount result, memory-query results, and button transitions. Each diagnostic event is flushed and synced to the SD card where the filesystem supports it. It does not capture a Switch fatal-error report if the process or console crashes before the runtime can log the failure.
+The log appends a new boot/exit section on each run. It records whether libnx's existing `sdmc:` devoptab is available, memory-query results, and button transitions. The probe does not call `fsdevMountSdmc()` again: libnx normally mounts the SD device before an NRO enters `main()`, and a redundant mount can report an error despite the existing mount being usable. Each diagnostic event is flushed and synced to the SD card where the filesystem supports it. It does not capture a Switch fatal-error report if the process or console crashes before the runtime can log the failure.
 
 ## What to send back
 

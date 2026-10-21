@@ -53,10 +53,11 @@ static void log_result(const char *operation, Result result)
 
 static void open_log(void)
 {
-    Result mount_result = fsdevMountSdmc();
-    if (R_FAILED(mount_result)) {
+    // libnx mounts sdmc: during normal NRO startup. Mounting it again can
+    // fail even though the existing devoptab is usable, so inspect it instead.
+    if (fsdevGetDeviceFileSystem("sdmc") == NULL) {
         snprintf(g_log_status, sizeof(g_log_status),
-                 "SD mount failed: 0x%08" PRIx32, (uint32_t)mount_result);
+                 "sdmc devoptab is not available");
         return;
     }
 
@@ -79,7 +80,7 @@ static void open_log(void)
     log_message("INFO", "========== AndroidWine Probe boot ==========");
     log_message("INFO", "build=%s %s", __DATE__, __TIME__);
     log_message("INFO", "horizon_version_raw=0x%08" PRIx32, (uint32_t)hosversionGet());
-    log_result("fsdevMountSdmc", mount_result);
+    log_message("INFO", "sdmc_devoptab=available");
 
     u64 total_memory = 0;
     u64 used_memory = 0;
