@@ -13,11 +13,11 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 
 ## 0.5 — Switch Vulkan/NXVK proof
 
-- [x] Pin an NXVK revision and define compute-submission, shader, and visible-present tests.
-- [x] Build compute, shader, and present validation NROs through GitHub Actions and publish their source/license notice (run `39595030407`, artifact `androidwine-nxvk-vulkan-76da3a07932e0c9e345923e72766868d89186fc0`).
-- [x] Run the compute and present tests on hardware; user logs report both pass, with a brief visible color flicker.
-- [ ] Build and run the offscreen triangle/NAK shader validation NRO.
-- [ ] Record remaining HOS/driver limitations; do not infer Android Vulkan or APK support from a passing native Vulkan test.
+- [x] Pin an NXVK revision and define compute, shader, texture, depth, and visible-present tests.
+- [x] Build the initial compute/shader/present NROs with GitHub Actions and publish the source/license notice (run `39595030407`).
+- [x] Run compute, offscreen triangle/shader, and present tests on hardware; logs report pass, including 300/300 presents. User observed a brief color flicker.
+- [ ] Build and run the offscreen texture-upload/sampler and 3D-depth validation NROs.
+- [ ] Record remaining HOS/driver limitations; do not infer Android Vulkan or APK support from passing native Vulkan tests.
 
 **Test instructions:** [docs/nxvk-vulkan-test.md](nxvk-vulkan-test.md). The smoke NROs statically link NXVK and are subject to its GPL-2.0-or-later terms.
 

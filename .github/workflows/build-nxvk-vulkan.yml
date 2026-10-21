@@ -85,25 +85,33 @@ jobs:
             TITLE="AndroidWine Vulkan Compute Smoke"
           run_logged triangle make -C third_party/nxvk nro APP=nvk_tri CONTAINER=docker \
             TITLE="AndroidWine Vulkan Shader Smoke"
+          run_logged texture make -C third_party/nxvk nro APP=nvk_logo CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Texture Smoke"
+          run_logged scene make -C third_party/nxvk nro APP=nvk_scene CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Scene Smoke"
           run_logged present make -C third_party/nxvk nro APP=nvk_vi_swapchain CONTAINER=docker \
             TITLE="AndroidWine Vulkan Present Smoke"
 
           mkdir -p nxvk-artifacts
           cp third_party/nxvk/switch/smoke/out/nvk_smoke.nro nxvk-artifacts/androidwine_vk_compute.nro
           cp third_party/nxvk/switch/smoke/out/nvk_tri.nro nxvk-artifacts/androidwine_vk_triangle.nro
+          cp third_party/nxvk/switch/smoke/out/nvk_logo.nro nxvk-artifacts/androidwine_vk_texture.nro
+          cp third_party/nxvk/switch/smoke/out/nvk_scene.nro nxvk-artifacts/androidwine_vk_scene.nro
           cp third_party/nxvk/switch/smoke/out/nvk_vi_swapchain.nro nxvk-artifacts/androidwine_vk_present.nro
           cp third_party/nxvk/licenses/GPL-2.0-or-later nxvk-artifacts/
           cat > nxvk-artifacts/SOURCE.txt <<'EOF'
           AndroidWine NXVK Vulkan smoke-test binaries
 
           Driver and validation app source: https://github.com/berlint-hub/nxvk/tree/1b7c38f6151b7cde61500d0a1e984b984587f706
-          The three NROs are statically linked with NXVK/NVK and the upstream validation programs.
+          The five NROs are statically linked with NXVK/NVK and the upstream validation programs.
           NXVK marks its Switch-specific code and validation programs GPL-2.0-or-later; see the
           included license and the pinned source tree. The artifact is for hardware diagnostics.
           EOF
           find nxvk-artifacts -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
           test -s nxvk-artifacts/androidwine_vk_compute.nro
           test -s nxvk-artifacts/androidwine_vk_triangle.nro
+          test -s nxvk-artifacts/androidwine_vk_texture.nro
+          test -s nxvk-artifacts/androidwine_vk_scene.nro
           test -s nxvk-artifacts/androidwine_vk_present.nro
 
       - name: Upload NXVK build logs
