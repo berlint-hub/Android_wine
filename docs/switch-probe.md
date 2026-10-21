@@ -26,6 +26,10 @@ The expected output is `androidwine_probe_v020.nro` in the repository root. The 
 
 The log appends a new boot/exit section on each run. It records whether libnx's existing `sdmc:` devoptab is available, memory-query results, and button transitions. The probe does not call `fsdevMountSdmc()` again: libnx normally mounts the SD device before an NRO enters `main()`, and a redundant mount can report an error despite the existing mount being usable. Each diagnostic event is flushed and synced to the SD card where the filesystem supports it. It does not capture a Switch fatal-error report if the process or console crashes before the runtime can log the failure.
 
+## Confirmed hardware run
+
+A user-supplied run on 2026-10-21 confirmed `probe_version=0.2.0`, HOS raw version `0x00160100` (22.1.0), `sdmc_devoptab=available`, successful total/used memory queries, A-button detection, and a clean Plus exit. This verifies the diagnostic homebrew path on that Switch. It does **not** test Vulkan/NXVK, Unity, Android APIs, or APK launch. The reported total-minus-used difference is about 3.9 MiB and must not be treated as reliable free RAM: `UsedMemorySize` includes the libnx process heap.
+
 ## What to send back
 
 Please send:

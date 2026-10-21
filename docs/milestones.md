@@ -5,9 +5,9 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 ## 0 — Build and hardware proof
 
 - [ ] Select and document the devkitPro/libnx toolchain version.
-- [ ] Build a minimal `.nro` from a clean checkout.
-- [ ] Run it on a Switch with homebrew support; show a screen and read controller input.
-- [ ] Add logging and a clean exit path.
+- [x] Build a minimal `.nro` from a clean checkout (GitHub Actions, run `39582225272`).
+- [x] Run it on a Switch with homebrew support; verify controller input, SD logging, and normal exit (user-supplied run log, 2026-10-21).
+- [x] Add logging and a clean exit path.
 
 **Exit condition:** a reproducible build plus a recorded manual test procedure. This proves only the homebrew shell, not Android compatibility.
 
