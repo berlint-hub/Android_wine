@@ -55,15 +55,17 @@ $(BUILD):
 	@mkdir -p "$@"
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
-$(OUTPUT).elf: $(OFILES)
-$(OFILES_SRC): $(HFILES_BIN)
-
 else
 
 .PHONY: all
 all: $(OUTPUT).nro
 
 endif
+
+# Keep these rules outside the root/build-directory conditional: the recursive
+# make reads this same file from build/, where it must still see these targets.
+$(OUTPUT).elf: $(OFILES)
+$(OFILES_SRC): $(HFILES_BIN)
 
 clean:
 	@echo clean ...
