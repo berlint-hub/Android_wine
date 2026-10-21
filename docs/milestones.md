@@ -45,7 +45,7 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 
 - [x] Add owner/window reference accounting, geometry and generation state, surface-held references, and paired surface destruction to the internal adapter contract.
 - [x] Extend the Switch NRO to test geometry-not-ready rejection, acquire/release balance, Activity-owner release while a Vulkan surface keeps the window alive, surface destruction, and stale-window rejection.
-- [ ] Build the updated lifecycle NRO in GitHub Actions.
+- [x] Build the updated lifecycle NRO in GitHub Actions (run `39640954599`; artifact `androidwine-nxvk-vulkan-699679e247353df892550d95cfef29e5ae9f5387`).
 - [ ] Run that updated NRO on Switch and report its lifecycle markers and present count.
 - [ ] Only then design the actual Android-compatible `ANativeWindow` object ABI and entry points.
 
