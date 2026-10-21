@@ -57,7 +57,7 @@ jobs:
           fi
           cat build.log
           test -s androidwine_probe.nro
-          file androidwine_probe.nro
+          echo "::notice::Built androidwine_probe.nro ($(wc -c < androidwine_probe.nro) bytes)"
 
       - name: Upload NRO artifact
         uses: actions/upload-artifact@v4
