@@ -2,7 +2,7 @@
 
 An experimental homebrew project exploring how to run a **small, explicitly defined subset of Android applications** on Nintendo Switch under Horizon OS. The long-term goal is to grow compatibility incrementally; this is not currently a general-purpose Android runtime.
 
-> **Status:** Horizon diagnostic NRO, the complete nine-test NXVK Vulkan feature ladder, and the first synthetic Android-surface-to-Horizon adapter NRO have passed on the user's Switch. The adapter log confirms 60/60 presents; this verifies only the direct translation contract, not an Android loader/runtime. No Android runtime or APK execution support exists.
+> **Status:** Horizon diagnostic NRO, the nine-test NXVK Vulkan feature ladder, and the first synthetic Android-surface-to-Horizon adapter NRO have passed on the user's Switch. A follow-up adapter revision adds lifecycle/reference accounting and now needs its own CI build and device run. Neither revision provides an Android loader/runtime or APK execution.
 
 ## Target
 

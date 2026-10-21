@@ -39,7 +39,17 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 - [x] Run the new NRO on the user's Switch; user log reports a passing adapter contract and 60/60 presents (2026-10-21).
 - [ ] Replace the synthetic token with a real Android-window surrogate/lifecycle API and design the Vulkan loader boundary; do not claim Android APK/NativeActivity support yet.
 
-**Scope and test instructions:** [docs/android-horizon-bridge.md](android-horizon-bridge.md). The test uses a synthetic pointer token. It is not an `ANativeWindow` ABI, Android loader export, JNI/ART implementation, or APK runner.
+**Scope and test instructions:** [docs/android-horizon-bridge.md](android-horizon-bridge.md). The passed revision used a synthetic pointer token. It is not an `ANativeWindow` ABI, Android loader export, JNI/ART implementation, or APK runner.
+
+## 0.8 — Window lifecycle accounting (Switch-side prototype)
+
+- [x] Add owner/window reference accounting, geometry and generation state, surface-held references, and paired surface destruction to the internal adapter contract.
+- [x] Extend the Switch NRO to test geometry-not-ready rejection, acquire/release balance, Activity-owner release while a Vulkan surface keeps the window alive, surface destruction, and stale-window rejection.
+- [ ] Build the updated lifecycle NRO in GitHub Actions.
+- [ ] Run that updated NRO on Switch and report its lifecycle markers and present count.
+- [ ] Only then design the actual Android-compatible `ANativeWindow` object ABI and entry points.
+
+**Caveat:** the internal pointer is still synthetic. These counters and size fields are not Android's ABI implementation and do not make the previous hardware pass carry over to this revision.
 
 ## 1 — APK inspection (host tool)
 

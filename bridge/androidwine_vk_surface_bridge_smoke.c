@@ -106,11 +106,12 @@ int main(void)
     }
 
     if (!androidwine_vk_surface_adapter_bind(&adapter, android_window,
-                                              horizon_window, CreateViSurfaceNN)) {
+                                              horizon_window, 0, 0, CreateViSurfaceNN)) {
         LOG("FAIL: adapter rejected valid Android/Horizon window binding");
         goto cleanup;
     }
-    LOG("window_binding=registered opaque Android token -> NWindow");
+    LOG("window_binding=registered opaque Android token -> NWindow refs=%u geometry_generation=%llu",
+        adapter.window_references, (unsigned long long)adapter.geometry_generation);
 
     VkAndroidSurfaceCreateInfoKHR android_surface_info = {
         .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
@@ -147,11 +148,52 @@ int main(void)
     android_surface_info.pNext = NULL;
 
     result = androidwine_vkCreateAndroidSurfaceKHR(
+        &adapter, context.instance, &android_surface_info, NULL, &rejected_surface);
+    if (result != VK_ERROR_SURFACE_LOST_KHR || rejected_surface != VK_NULL_HANDLE) {
+        LOG("FAIL: zero-sized window must not create a Vulkan surface (result=%d)", result);
+        goto cleanup;
+    }
+    LOG("window_without_geometry=correctly_rejected");
+
+    if (!androidwine_vk_surface_adapter_acquire_window(&adapter, android_window) ||
+        adapter.window_references != 2 ||
+        !androidwine_vk_surface_adapter_release_window(&adapter, android_window) ||
+        adapter.window_references != 1) {
+        LOG("FAIL: Android window acquire/release reference accounting");
+        goto cleanup;
+    }
+    if (!androidwine_vk_surface_adapter_update_geometry(&adapter, android_window,
+                                                         1280, 720) ||
+        adapter.width != 1280 || adapter.height != 720 ||
+        adapter.geometry_generation != 1) {
+        LOG("FAIL: initial Android window geometry registration");
+        goto cleanup;
+    }
+    LOG("window_references=acquire/release balanced; geometry=%ux%u generation=%llu",
+        adapter.width, adapter.height, (unsigned long long)adapter.geometry_generation);
+
+    result = androidwine_vkCreateAndroidSurfaceKHR(
         &adapter, context.instance, &android_surface_info, NULL, &surface);
     LOG("androidwine_vkCreateAndroidSurfaceKHR -> %d", result);
     if (result != VK_SUCCESS || surface == VK_NULL_HANDLE)
         goto cleanup;
+    if (adapter.window_references != 2 || adapter.surface_references != 1) {
+        LOG("FAIL: created surface did not retain its Android window");
+        goto cleanup;
+    }
+    if (androidwine_vk_surface_adapter_unbind(&adapter) != VK_FALSE ||
+        adapter.active != VK_TRUE || adapter.surface_references != 1) {
+        LOG("FAIL: adapter must not unbind while a Vulkan surface is alive");
+        goto cleanup;
+    }
+    LOG("unbind_with_live_surface=correctly_rejected");
     LOG("surface_translation=VK_KHR_android_surface request -> VK_NN_vi_surface");
+    if (!androidwine_vk_surface_adapter_release_window(&adapter, android_window) ||
+        adapter.window_references != 1 || adapter.active != VK_TRUE) {
+        LOG("FAIL: releasing Activity owner invalidated a surface-held window reference");
+        goto cleanup;
+    }
+    LOG("activity_window_released=surface_reference_keeps_window_alive");
 
     VkBool32 present_supported = VK_FALSE;
     result = GetPhysicalDeviceSurfaceSupportKHR(context.phys, context.qfi,
@@ -408,6 +450,25 @@ int main(void)
 
     LOG("presented_frames=%u expected=%u", presented, BRIDGE_FRAMES);
     if (presented == BRIDGE_FRAMES) {
+        androidwine_vkDestroyAndroidSurfaceKHR(&adapter, context.instance, surface,
+                                               NULL, DestroySurfaceKHR);
+        surface = VK_NULL_HANDLE;
+        if (adapter.window_references != 0 || adapter.surface_references != 0 ||
+            adapter.active != VK_FALSE) {
+            LOG("FAIL: destroying the last surface did not release/invalidate the window");
+            goto cleanup;
+        }
+        result = androidwine_vkCreateAndroidSurfaceKHR(
+            &adapter, context.instance, &android_surface_info, NULL, &rejected_surface);
+        if (result != VK_ERROR_SURFACE_LOST_KHR || rejected_surface != VK_NULL_HANDLE) {
+            LOG("FAIL: stale window after final release must be rejected (result=%d)", result);
+            goto cleanup;
+        }
+        if (!androidwine_vk_surface_adapter_unbind(&adapter)) {
+            LOG("FAIL: adapter refused to unbind after all surface references were released");
+            goto cleanup;
+        }
+        LOG("window_lifecycle=owner-release, surface-retain, surface-destroy, stale-reject PASSED");
         LOG("=== ANDROIDWINE_SURFACE_BRIDGE_CONTRACT PASSED ===");
         passed = true;
     }
@@ -426,9 +487,11 @@ cleanup:
     if (swapchain != VK_NULL_HANDLE)
         DestroySwapchainKHR(context.dev, swapchain, NULL);
     if (surface != VK_NULL_HANDLE)
-        DestroySurfaceKHR(context.instance, surface, NULL);
+        androidwine_vkDestroyAndroidSurfaceKHR(&adapter, context.instance, surface,
+                                               NULL, DestroySurfaceKHR);
     free(images);
-    androidwine_vk_surface_adapter_unbind(&adapter);
+    if (adapter.android_window != NULL)
+        (void)androidwine_vk_surface_adapter_unbind(&adapter);
 
 teardown:
     nvk_teardown(&context);
