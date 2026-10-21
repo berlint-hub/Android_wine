@@ -47,17 +47,18 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 - [x] Extend the Switch NRO to test geometry-not-ready rejection, acquire/release balance, Activity-owner release while a Vulkan surface keeps the window alive, surface destruction, and stale-window rejection.
 - [x] Build the updated lifecycle NRO in GitHub Actions (run `39640954599`; artifact `androidwine-nxvk-vulkan-699679e247353df892550d95cfef29e5ae9f5387`).
 - [x] Run the updated NRO on Switch; user log reports all lifecycle markers and 60/60 presents (2026-10-21).
-- [x] Complete the lifecycle-accounting run on Switch; the supplied log reports every marker and 60/60 presents (2026-10-21).
 - [ ] Implement a minimal public NDK-compatible `ANativeWindow` object/function subset. Keep loader and JNI integration as separate gates.
 
 **Caveat:** this hardware-tested revision still uses a synthetic pointer token. Its counters and geometry fields are not Android's ABI implementation and do not provide APK/NativeActivity support.
 
-## 0.9 — Opaque NDK-shaped ANativeWindow subset (Switch-side source; hardware pending)
+## 0.9 — Opaque NDK-shaped ANativeWindow subset (Switch-side prototype; passed)
 
 - [x] Replace the smoke test's token with a privately allocated, opaque AndroidWine window object linked to Horizon `NWindow`.
 - [x] Implement a narrow public NDK-shaped function subset: acquire/release, width/height/format queries, and `setBuffersGeometry` default/current-size behavior.
 - [x] Extend the NRO test for geometry readiness, supported and unsupported geometry requests, lifetime retention, stale use, and 60 VI presents.
-- [ ] Build this revision in GitHub Actions and run its artifact on Switch; earlier hardware passes cover only the prior synthetic-token revisions.
+- [x] Build this revision in GitHub Actions run `39668507515` (push) and `39668520496` (PR); artifact `androidwine-nxvk-vulkan-4aed0fe071a377a81849a298b35ec431e2e6b760`.
+- [x] Run the matching artifact on Switch; supplied log reports all function/lifecycle markers, 1280×720 swapchain, and 60/60 presents (2026-10-21).
+- [ ] Design the Android Vulkan loader/ELF import boundary; keep loader, JNI/ART and APK claims separate.
 
 **Caveat:** these function symbols are directly linked into the smoke NRO. This remains a prototype, not Android's private `ANativeWindow` ABI, `libandroid.so`, Android Vulkan loader, JNI/ART, NativeActivity, or APK runtime.
 
