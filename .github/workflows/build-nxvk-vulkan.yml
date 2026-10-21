@@ -50,6 +50,11 @@ jobs:
           script.write_text(source.replace(old, new, 1))
           PY
 
+      - name: Prepare Docker-shared sysroot directory
+        run: |
+          mkdir -p third_party/nxvk/switch/rust/sysroot
+          chmod 0777 third_party/nxvk/switch/rust/sysroot
+
       - name: Build NXVK toolchain image
         run: make -C third_party/nxvk image CONTAINER=docker
 
