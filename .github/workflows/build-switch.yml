@@ -29,14 +29,23 @@ jobs:
         run: |
           set -eu
           test -n "$DEVKITPRO"
+          test -f "$DEVKITPRO/switchvars.sh"
+          . "$DEVKITPRO/switchvars.sh"
           test -f "$DEVKITPRO/libnx/switch_rules"
-          command -v aarch64-none-elf-gcc
-          command -v elf2nro
+          for tool in aarch64-none-elf-gcc elf2nro; do
+            tool_path=$(command -v "$tool" || true)
+            if [ -z "$tool_path" ]; then
+              echo "::error::Missing $tool after loading switchvars.sh; PATH=$PATH"
+              exit 1
+            fi
+            echo "::notice::$tool=$tool_path"
+          done
           aarch64-none-elf-gcc --version | head -n 1
 
       - name: Build diagnostic NRO
         run: |
           set -eu
+          . "$DEVKITPRO/switchvars.sh"
           make clean
           make -j"$(nproc)"
           test -s androidwine_probe.nro
