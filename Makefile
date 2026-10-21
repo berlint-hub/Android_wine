@@ -66,6 +66,11 @@ endif
 # make reads this same file from build/, where it must still see these targets.
 $(OUTPUT).elf: $(OFILES)
 $(OFILES_SRC): $(HFILES_BIN)
+ifeq ($(strip $(NO_NACP)),)
+$(OUTPUT).nro: $(OUTPUT).elf $(OUTPUT).nacp
+else
+$(OUTPUT).nro: $(OUTPUT).elf
+endif
 
 clean:
 	@echo clean ...
