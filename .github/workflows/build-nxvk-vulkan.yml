@@ -55,6 +55,9 @@ jobs:
               echo "::group::NXVK ${label} build log (last 180 lines)"
               tail -n 180 "$logfile"
               echo "::endgroup::"
+              while IFS= read -r line; do
+                echo "::error::$line"
+              done < <(tail -n 25 "$logfile")
               return "$status"
             fi
           }
@@ -79,6 +82,15 @@ jobs:
           find nxvk-artifacts -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
           test -s nxvk-artifacts/androidwine_vk_compute.nro
           test -s nxvk-artifacts/androidwine_vk_present.nro
+
+      - name: Upload NXVK build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nxvk-build-logs-${{ github.sha }}
+          path: nxvk-*.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload Vulkan NROs and source notice
         uses: actions/upload-artifact@v4
