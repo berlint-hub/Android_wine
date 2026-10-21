@@ -7,10 +7,14 @@ on:
     paths:
       - ".github/workflows/build-nxvk-vulkan.yml"
       - "docs/nxvk-vulkan-test.md"
+      - "docs/android-horizon-bridge.md"
+      - "bridge/**"
   pull_request:
     paths:
       - ".github/workflows/build-nxvk-vulkan.yml"
       - "docs/nxvk-vulkan-test.md"
+      - "docs/android-horizon-bridge.md"
+      - "bridge/**"
   workflow_dispatch:
 
 permissions:
@@ -59,6 +63,12 @@ jobs:
       - name: Generate Vulkan smoke-test shaders
         run: docker run --rm -v "$PWD/third_party/nxvk:/work:z" -w /work nxvk bash switch/smoke/shaders/gen-shaders.sh
 
+      - name: Stage Android-to-Horizon Vulkan surface adapter smoke source
+        run: |
+          cp bridge/androidwine_vk_surface_adapter.h third_party/nxvk/switch/smoke/
+          cp bridge/androidwine_vk_surface_adapter.c third_party/nxvk/switch/smoke/
+          cp bridge/androidwine_vk_surface_bridge_smoke.c third_party/nxvk/switch/smoke/androidwine_surface_bridge.c
+
       - name: Build Vulkan compute, shader, and present tests
         shell: bash
         run: |
@@ -99,6 +109,8 @@ jobs:
             TITLE="AndroidWine Vulkan Cubemap Smoke"
           run_logged present make -C third_party/nxvk nro APP=nvk_vi_swapchain CONTAINER=docker \
             TITLE="AndroidWine Vulkan Present Smoke"
+          run_logged android-surface-bridge make -C third_party/nxvk nro APP=androidwine_surface_bridge CONTAINER=docker \
+            TITLE="AndroidWine Surface Bridge Smoke"
 
           mkdir -p nxvk-artifacts
           cp third_party/nxvk/switch/smoke/out/nvk_smoke.nro nxvk-artifacts/androidwine_vk_compute.nro
@@ -110,14 +122,20 @@ jobs:
           cp third_party/nxvk/switch/smoke/out/nvk_textures.nro nxvk-artifacts/androidwine_vk_textures.nro
           cp third_party/nxvk/switch/smoke/out/nvk_cubemap.nro nxvk-artifacts/androidwine_vk_cubemap.nro
           cp third_party/nxvk/switch/smoke/out/nvk_vi_swapchain.nro nxvk-artifacts/androidwine_vk_present.nro
+          cp third_party/nxvk/switch/smoke/out/androidwine_surface_bridge.nro nxvk-artifacts/androidwine_vk_android_surface_bridge.nro
           cp third_party/nxvk/licenses/GPL-2.0-or-later nxvk-artifacts/
-          cat > nxvk-artifacts/SOURCE.txt <<'EOF'
+          cp LICENSE nxvk-artifacts/ANDROIDWINE-MIT-LICENSE
+          cat > nxvk-artifacts/SOURCE.txt <<EOF
           AndroidWine NXVK Vulkan smoke-test binaries
 
-          Driver and validation app source: https://github.com/berlint-hub/nxvk/tree/1b7c38f6151b7cde61500d0a1e984b984587f706
-          The nine NROs are statically linked with NXVK/NVK and the upstream validation programs.
+          Driver and upstream validation source: https://github.com/berlint-hub/nxvk/tree/1b7c38f6151b7cde61500d0a1e984b984587f706
+          AndroidWine bridge adapter source: https://github.com/berlint-hub/Android_wine/tree/${GITHUB_SHA}/bridge
+          The nine upstream NROs are statically linked with NXVK/NVK. The additional
+          androidwine_vk_android_surface_bridge.nro combines the pinned NXVK/NVK driver,
+          upstream harness, and AndroidWine's bridge adapter smoke source from bridge/.
           NXVK marks its Switch-specific code and validation programs GPL-2.0-or-later; see the
-          included license and the pinned source tree. The artifact is for hardware diagnostics.
+          included license and pinned source tree. AndroidWine adapter source is MIT-licensed;
+          its license is also included. This combined diagnostic binary is packaged with source notices.
           EOF
           find nxvk-artifacts -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
           test -s nxvk-artifacts/androidwine_vk_compute.nro
@@ -129,6 +147,7 @@ jobs:
           test -s nxvk-artifacts/androidwine_vk_textures.nro
           test -s nxvk-artifacts/androidwine_vk_cubemap.nro
           test -s nxvk-artifacts/androidwine_vk_present.nro
+          test -s nxvk-artifacts/androidwine_vk_android_surface_bridge.nro
 
       - name: Upload NXVK build logs
         if: always()

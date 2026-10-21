@@ -28,7 +28,18 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 - [ ] Run on an Android arm64 device; retain device details and logcat/private app logs.
 - [ ] Compare Android results with the already-passing native NXVK `VK_NN_vi_surface` tests; do not infer an Android-to-Horizon bridge from either result alone.
 
-**Test instructions:** [android-vulkan-smoke/README.md](../android-vulkan-smoke/README.md). This is an Android reference only; it neither launches APKs on Switch nor tests Unity/JNI.
+**Test instructions:** [android-vulkan-smoke/README.md](../android-vulkan-smoke/README.md). This is an Android reference only; it neither launches APKs on Switch nor tests Unity/JNI. The phone-side reference run is optional for the Switch-side bridge work.
+
+## 0.7 — First Android surface adapter spike (Switch-side)
+
+- [x] Define a direct C adapter contract from a registered opaque Android-window handle and `VkAndroidSurfaceCreateInfoKHR` to NXVK `vkCreateViSurfaceNN` plus Horizon `NWindow`.
+- [x] Reject malformed requests and stale/unregistered window handles explicitly.
+- [x] Add a dedicated NRO smoke test that uses the adapter, creates a VI swapchain and attempts 60 presents; keep it separate from the nine upstream NXVK pass claims.
+- [ ] Build and publish the adapter NRO through the NXVK GitHub Actions workflow.
+- [ ] Run the new NRO on the user's Switch and provide its app/Mesa logs plus whether changing colors were visible.
+- [ ] Based on that run, design the real Android-window object lifecycle and Vulkan loader boundary; do not claim Android APK/NativeActivity support yet.
+
+**Scope and test instructions:** [docs/android-horizon-bridge.md](android-horizon-bridge.md). The test uses a synthetic pointer token. It is not an `ANativeWindow` ABI, Android loader export, JNI/ART implementation, or APK runner.
 
 ## 1 — APK inspection (host tool)
 

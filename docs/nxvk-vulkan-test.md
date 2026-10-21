@@ -21,13 +21,19 @@ These validation apps are based on the NXVK upstream tests, rather than new Andr
 ## Run on Switch
 
 1. Download the artifact from the successful Actions run and extract it.
-2. Copy both `.nro` files to `sdmc:/switch/` (or another Homebrew Menu folder). Keep the filenames.
+2. Copy the `.nro` test files you intend to run to `sdmc:/switch/` (or another Homebrew Menu folder). Keep their filenames.
 3. Launch each test as a **game override** (hold **R** while launching a game, then start the NRO from Homebrew Menu). Applet mode has only shown about 403 MiB total process memory and may not be enough for the driver.
 4. Run the eight headless tests in this order: `androidwine_vk_compute.nro`, `androidwine_vk_triangle.nro`, `androidwine_vk_texture.nro`, `androidwine_vk_scene.nro`, `androidwine_vk_indexed.nro`, `androidwine_vk_multi.nro`, `androidwine_vk_textures.nro`, and `androidwine_vk_cubemap.nro`. Each app log should end with its matching `=== ... PASSED ===` line. These tests validate compute, shaders, sampling/uploads, depth, indexed draws, blending, mipmaps/formats, and cubemaps via readback; they do not show graphics on screen.
-5. Run `androidwine_vk_present.nro` last. Note whether you see the changing colors (it auto-exits after 300 frames) and check `sdmc:/nvk_vi_swapchain.log` for `=== nvk_vi_swapchain PASSED ===`.
+5. Run `androidwine_vk_present.nro` last among the nine upstream tests. Note whether you see the changing colors (it auto-exits after 300 frames) and check `sdmc:/nvk_vi_swapchain.log` for `=== nvk_vi_swapchain PASSED ===`.
 6. Send all nine app logs, the Mesa log from each run if available, whether the screen visibly changed color, and any crash/freeze details. Copy logs after each test because `nvk_mesa.log` is overwritten at startup.
 
 The upstream present test automatically stops after 300 frames (about five seconds at 60 FPS) and exits; it does not require a Plus-button exit. A passing result establishes only the tested NVK compute/present path on this console and HOS configuration. It does not establish OpenGL ES/Zink, Unity, Android surface/JNI support, or APK compatibility.
+
+## Experimental Android-to-Horizon surface adapter (separate test)
+
+The same workflow now also attempts to build `androidwine_vk_android_surface_bridge.nro` from the experimental source under `bridge/`. It is **not** one of the nine upstream tests above and has no hardware result yet. Its specific purpose is to verify a direct adapter call translating a registered synthetic Android-window token and `VkAndroidSurfaceCreateInfoKHR` request into NXVK's `VK_NN_vi_surface`/Horizon `NWindow` path, then presenting 60 frames. See [docs/android-horizon-bridge.md](android-horizon-bridge.md) for exact limitations and instructions. Do not interpret its build as a runtime or APK pass.
+
+When its artifact is available, run this additional NRO as a game override after the nine stable tests. It should show changing colors briefly and write `sdmc:/androidwine_surface_bridge.log` and `sdmc:/nvk_mesa.log`. Send both logs. The expected marker is `=== ANDROIDWINE_SURFACE_BRIDGE_CONTRACT PASSED ===`; the visible color change matters too.
 
 ## First hardware result
 

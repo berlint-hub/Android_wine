@@ -50,7 +50,13 @@ The intended Horizon renderer is **Vulkan-first**, using [NXVK](https://github.c
 
 NXVK is a graphics driver/library, not an Android Vulkan runtime: it does not supply ART, JNI/framework APIs, Android's Vulkan loader, `ANativeWindow`, or Android lifecycle/surface semantics. A Horizon implementation must bridge the app-facing Android graphics calls and surface/swapchain lifecycle to NXVK plus Horizon/libnx `NWindow`. Therefore “Vulkan-first” describes the Switch rendering backend, not a claim that APK graphics work already runs.
 
-Before integrating NXVK, account for its [license terms](https://github.com/berlint-hub/nxvk/blob/switch/switch/README.md#licensing): the project README says the Horizon port statically links the driver and treats the combined work as GPL-2.0-or-later, with corresponding source-availability obligations for distributed binaries. Confirm licensing and distribution plans before linking it into this project.
+### First adapter spike
+
+`bridge/androidwine_vk_surface_adapter.[ch]` prototypes the narrow surface translation: a registered opaque Android-window token plus `VkAndroidSurfaceCreateInfoKHR` is converted to `VkViSurfaceCreateInfoNN` using the pinned NXVK `vkCreateViSurfaceNN` entry point and a Horizon `NWindow`. A separate NRO smoke program calls this shim directly, checks unknown-window rejection, then exercises a short VI swapchain present loop. The build is wired into the NXVK workflow.
+
+This is deliberately **not** an Android ABI or loader implementation: the test token is synthetic, the shim does not export `vkCreateAndroidSurfaceKHR`, and the instance does not advertise `VK_KHR_android_surface`. It proves only the proposed adapter contract when the target Switch run passes. See [the bridge spike notes](android-horizon-bridge.md) for scope, next gates, and hardware instructions.
+
+Before integrating NXVK into a distributed runtime, account for its [license terms](https://github.com/berlint-hub/nxvk/blob/switch/switch/README.md#licensing): the project README says the Horizon port statically links the driver and treats the combined work as GPL-2.0-or-later, with corresponding source-availability obligations for distributed binaries. Confirm licensing and distribution plans before linking it into this project.
 
 ## Design principles
 
