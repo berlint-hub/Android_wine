@@ -31,7 +31,7 @@ The upstream present test automatically stops after 300 frames (about five secon
 
 ## First hardware result
 
-User-supplied logs report `nvk_smoke PASSED`, `nvk_tri PASSED`, `nvk_logo PASSED`, `nvk_scene PASSED`, and `nvk_vi_swapchain PASSED` on the Switch. NVK identified `NVIDIA Tegra X1 (NVK gm20b)`, Vulkan API `1.4.354`. The compute test verified all 1,024 buffer words; triangle and scene tests verified shaded center pixels and clear corners; the logo test verified all four sampled texture colors; and the WSI test created a 1280×720 surface and presented 300/300 frames. This confirms basic compute, shader, descriptor/texture upload and sampling, depth rendering/readback, and API-level surface presentation on this console. It does not certify sustained visual quality or Android Vulkan compatibility.
+User-supplied logs show **all nine initial NXVK Vulkan ladder tests passed** on the Switch: `nvk_smoke`, `nvk_tri`, `nvk_logo`, `nvk_scene`, `nvk_indexed`, `nvk_multi`, `nvk_textures`, `nvk_cubemap`, and `nvk_vi_swapchain`. NVK identified `NVIDIA Tegra X1 (NVK gm20b)`, Vulkan API `1.4.354`. The results cover buffer compute/host mapping, shader pipeline and pixel readback, texture sampling, depth, UINT16/UINT32 indexed drawing, blending, seven-level sRGB mipmaps, BC1 sampling, cubemap sampling, and VI swapchain presentation of 300/300 frames at 1280×720. This is strong evidence that the tested NXVK Vulkan feature ladder works on this console/HOS setup. It does not establish Android loader/surface/JNI behavior, Unity startup, or APK compatibility.
 
 ## Expected outcomes
 

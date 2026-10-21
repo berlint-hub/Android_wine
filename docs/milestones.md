@@ -15,9 +15,8 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 
 - [x] Pin an NXVK revision and define the compute, shader, texture, depth, indexed-draw, blend, mipmap, cubemap, and present tests.
 - [x] Build the complete nine-app Vulkan feature ladder through GitHub Actions (run `39607675161`, artifact `androidwine-nxvk-vulkan-e357e8852e5f811ca0e05f30940ea01c63075fc6`).
-- [x] Run compute, triangle/shader, texture/sampler, depth/scene, and present tests on hardware; all five user-supplied logs pass, including 300/300 presents.
-- [ ] Run the remaining indexed-draw, multi-draw/blending, mipmap/format, and cubemap tests on hardware.
-- [ ] Record remaining HOS/driver limitations; do not infer Android Vulkan or APK support from passing native Vulkan tests.
+- [x] Run all nine validation tests on hardware; user logs report pass for compute, shader/readback, texture/sampling, depth, indexed draws, blending, mipmaps, BC1, cubemap, and 300/300 swapchain presents.
+- [x] Record that this proves native NXVK/Horizon Vulkan functionality only—not Android Vulkan loading/surfaces, Unity startup, JNI, or APK execution.
 
 **Test instructions:** [docs/nxvk-vulkan-test.md](nxvk-vulkan-test.md). The smoke NROs statically link NXVK and are subject to its GPL-2.0-or-later terms.
 
