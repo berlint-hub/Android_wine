@@ -78,6 +78,7 @@ static void open_log(void)
     setvbuf(g_log, NULL, _IOLBF, 0);
     snprintf(g_log_status, sizeof(g_log_status), "%s", LOG_PATH);
     log_message("INFO", "========== AndroidWine Probe boot ==========");
+    log_message("INFO", "probe_version=0.2.0");
     log_message("INFO", "build=%s %s", __DATE__, __TIME__);
     log_message("INFO", "horizon_version_raw=0x%08" PRIx32, (uint32_t)hosversionGet());
     log_message("INFO", "sdmc_devoptab=available");
@@ -118,7 +119,8 @@ int main(int argc, char **argv)
     padInitializeDefault(&pad);
     open_log();
 
-    printf("AndroidWine — Switch bring-up probe\n");
+    printf("AndroidWine Switch probe v0.2.0\n");
+    printf("SD mount fix build\n");
     printf("====================================\n\n");
     printf("This build checks the Horizon homebrew environment.\n");
     printf("It does not run APKs or Android games yet.\n\n");

@@ -20,7 +20,7 @@ The expected output is `androidwine_probe.nro` in the repository root. The curre
 ## Run on Switch
 
 1. Copy `androidwine_probe.nro` to the SD card, for example `sdmc:/switch/androidwine_probe.nro`.
-2. Launch it from the Homebrew Menu. For a full-memory test, launch it as a game override (hold **R** while launching a game) if your homebrew setup supports that.
+2. Launch **AndroidWine Probe v0.2** from the Homebrew Menu. The screen must show `AndroidWine Switch probe v0.2.0` and `SD mount fix build`; if it shows the old "SD mount failed" text, the old NRO is still being launched. For a full-memory test, launch it as a game override (hold **R** while launching a game) if your homebrew setup supports that.
 3. Wait for the probe screen. Press **A** once to add a marker to the log; press **Plus** to exit cleanly.
 4. Copy `sdmc:/switch/androidwine/androidwine.log` off the card and share that text log.
 

@@ -14,9 +14,9 @@ BUILD := build
 SOURCES := source
 DATA :=
 INCLUDES :=
-APP_TITLE := AndroidWine Probe
+APP_TITLE := AndroidWine Probe v0.2
 APP_AUTHOR := AndroidWine contributors
-APP_VERSION := 0.1.0
+APP_VERSION := 0.2.0
 
 ARCH := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS := -g -Wall -Wextra -O2 $(ARCH) -D__SWITCH__ -D_GNU_SOURCE
