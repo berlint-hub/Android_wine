@@ -70,7 +70,7 @@ jobs:
               echo "::endgroup::"
               while IFS= read -r line; do
                 echo "::error::$line"
-              done < <(tail -n 25 "$logfile")
+              done < <(tail -n 8 "$logfile")
               return "$status"
             fi
           }
