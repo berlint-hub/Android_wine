@@ -44,9 +44,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          make -C third_party/nxvk nro APP=nvk_smoke CONTAINER=docker \
+          run_logged() {
+            local label="$1"
+            shift
+            local logfile="nxvk-${label}.log"
+            if "$@" >"$logfile" 2>&1; then
+              tail -n 40 "$logfile"
+            else
+              local status=$?
+              echo "::group::NXVK ${label} build log (last 180 lines)"
+              tail -n 180 "$logfile"
+              echo "::endgroup::"
+              return "$status"
+            fi
+          }
+
+          run_logged compute make -C third_party/nxvk nro APP=nvk_smoke CONTAINER=docker \
             TITLE="AndroidWine Vulkan Compute Smoke"
-          make -C third_party/nxvk nro APP=nvk_vi_swapchain CONTAINER=docker \
+          run_logged present make -C third_party/nxvk nro APP=nvk_vi_swapchain CONTAINER=docker \
             TITLE="AndroidWine Vulkan Present Smoke"
 
           mkdir -p nxvk-artifacts
