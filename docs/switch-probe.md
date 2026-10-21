@@ -28,7 +28,9 @@ The log appends a new boot/exit section on each run. It records whether libnx's 
 
 ## Confirmed hardware run
 
-A user-supplied run on 2026-10-21 confirmed `probe_version=0.2.0`, HOS raw version `0x00160100` (22.1.0), `sdmc_devoptab=available`, successful total/used memory queries, A-button detection, and a clean Plus exit. This verifies the diagnostic homebrew path on that Switch. It does **not** test Vulkan/NXVK, Unity, Android APIs, or APK launch. The reported total-minus-used difference is about 3.9 MiB and must not be treated as reliable free RAM: `UsedMemorySize` includes the libnx process heap.
+Two user-supplied runs on 2026-10-21 confirmed `probe_version=0.2.0`, HOS raw version `0x00160100` (22.1.0), `sdmc_devoptab=available`, successful total/used memory queries, input logging (A and B), and a clean Plus exit. This verifies the diagnostic homebrew path on that Switch. It does **not** test Vulkan/NXVK, Unity, Android APIs, or APK launch.
+
+The runs reported different memory limits: one had `total_memory_bytes=3343908864` (~3.11 GiB); a later run had `total_memory_bytes=422952960` (~403.4 MiB) and `used_memory_bytes=280080384` (~267.0 MiB). The latter is consistent with a more restricted applet-style launch, but the launch method was not included in the log, so that attribution is unconfirmed. In either run, `total_memory - used_memory` is **not** a reliable free-RAM figure because `UsedMemorySize` includes the libnx process heap.
 
 ## What to send back
 
