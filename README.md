@@ -2,7 +2,7 @@
 
 An experimental homebrew project exploring how to run a **small, explicitly defined subset of Android applications** on Nintendo Switch under Horizon OS. The long-term goal is to grow compatibility incrementally; this is not currently a general-purpose Android runtime.
 
-> **Status:** Horizon diagnostic NRO and the complete nine-test NXVK Vulkan feature ladder have passed on Switch hardware. A first Android-surface-to-Horizon C adapter spike is now in source and has a separate NXVK NRO build/test path; its CI build and Switch hardware run are pending. It is not yet connected to an Android loader/runtime. No Android runtime or APK execution support exists.
+> **Status:** Horizon diagnostic NRO, the complete nine-test NXVK Vulkan feature ladder, and the first synthetic Android-surface-to-Horizon adapter NRO have passed on the user's Switch. The adapter log confirms 60/60 presents; this verifies only the direct translation contract, not an Android loader/runtime. No Android runtime or APK execution support exists.
 
 ## Target
 
@@ -38,7 +38,7 @@ See [docs/architecture.md](docs/architecture.md) and [docs/milestones.md](docs/m
 
 A minimal libnx probe can be built with devkitPro using `make`. It writes a diagnostic log to the SD card and checks basic Horizon services, memory reporting, and controller input. See [docs/switch-probe.md](docs/switch-probe.md). It does **not** launch a game or APK. GitHub Actions builds this diagnostic NRO. The [NXVK Vulkan test guide](docs/nxvk-vulkan-test.md) documents the successful nine-test Switch hardware run.
 
-The experimental Switch-side surface adapter source is in [bridge/](bridge/) and its limits/hardware procedure are in [docs/android-horizon-bridge.md](docs/android-horizon-bridge.md). CI build passed; user Switch hardware testing is pending. It is only a direct shim contract, not an Android `ANativeWindow` implementation or APK runtime.
+The experimental Switch-side surface adapter source is in [bridge/](bridge/) and its limits/hardware procedure are in [docs/android-horizon-bridge.md](docs/android-horizon-bridge.md). CI and Switch hardware tests passed for the synthetic window-token contract; actual Android `ANativeWindow`, loader, JNI/ART and APK execution remain unimplemented.
 
 The Android-only Vulkan reference APK lives in [android-vulkan-smoke/](android-vulkan-smoke/README.md), with its own pinned Android SDK/NDK GitHub Actions build. Its APK has not yet been run on an Android device. The self-authored Unity Android reference project is separate in [unity-smoke/](unity-smoke/README.md); it needs a licensed Unity 2022.3 LTS Android editor installation and remains unbuilt/untested.
 

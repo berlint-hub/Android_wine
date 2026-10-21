@@ -33,7 +33,7 @@ It accepts one explicitly registered, opaque Android-window pointer, one Horizon
 
 `bridge/androidwine_vk_surface_bridge_smoke.c` is built against the pinned NXVK driver as `androidwine_vk_android_surface_bridge.nro`. It creates a synthetic opaque window token, registers it to `nwindowGetDefault()`, verifies an unregistered token is rejected, sends an Android-shaped surface-create request through the adapter, then creates a swapchain and presents 60 frames through NXVK/VI.
 
-A pass will verify only that the C adapter can translate this registered request into the already-working VI surface path on the target Switch. **The synthetic token is not an Android `ANativeWindow` implementation.** The test does not run Android code, load an APK, provide ART/JNI/NativeActivity, expose Android Vulkan entrypoints or prove Unity/game compatibility.
+The reported Switch pass verifies only that the C adapter can translate this registered request into the already-working VI surface path on the target Switch. **The synthetic token is not an Android `ANativeWindow` implementation.** The test does not run Android code, load an APK, provide ART/JNI/NativeActivity, expose Android Vulkan entrypoints or prove Unity/game compatibility.
 
 The build is added to [the NXVK GitHub Actions workflow](../.github/workflows/build-nxvk-vulkan.yml), which also packages the existing nine upstream tests. CI run [`39630991475`](https://github.com/berlint-hub/Android_wine/actions/runs/39630991475) successfully built and uploaded the adapter NRO; the Switch hardware run is pending. The additional NRO links GPL-2.0-or-later NXVK code; the workflow artifact retains the GPL source notice. AndroidWine's adapter source itself remains MIT-licensed.
 
@@ -46,9 +46,11 @@ The build is added to [the NXVK GitHub Actions workflow](../.github/workflows/bu
 
 The Android reference APK can help establish expected Android behavior, but running it on a phone is optional for the Switch adapter spike and does not substitute for the Switch NRO test.
 
-## Hardware test
+## Hardware result and rerun procedure
 
-Download artifact `androidwine-nxvk-vulkan-41be63f328c4cd01954a6fd437cfa44492f59573` from [successful run `39630991475`](https://github.com/berlint-hub/Android_wine/actions/runs/39630991475). Copy `androidwine_vk_android_surface_bridge.nro` to `sdmc:/switch/` and launch it from Homebrew Menu as a **game override** (hold R while launching a game). It presents changing colors for about one second and writes `sdmc:/androidwine_surface_bridge.log` plus `sdmc:/nvk_mesa.log`. Send both logs and say whether colors were visible. The expected app log ends with:
+The user ran `androidwine_vk_android_surface_bridge.nro` on Switch hardware. The supplied log reports successful NXVK initialization, correct rejection of an unregistered window and unsupported flags/pNext, successful adapter call to VI surface creation, present support, 1280×720 swapchain with three images, and **60/60 frames presented**. It ends with `=== ANDROIDWINE_SURFACE_BRIDGE_CONTRACT PASSED ===`. This is a hardware pass for the synthetic adapter contract only; the actual `ANativeWindow` ABI and APK runtime remain untested/unimplemented.
+
+For a rerun, download artifact `androidwine-nxvk-vulkan-41be63f328c4cd01954a6fd437cfa44492f59573` from [successful run `39630991475`](https://github.com/berlint-hub/Android_wine/actions/runs/39630991475). Copy `androidwine_vk_android_surface_bridge.nro` to `sdmc:/switch/` and launch it from Homebrew Menu as a **game override** (hold R while launching a game). It presents changing colors for about one second and writes `sdmc:/androidwine_surface_bridge.log` plus `sdmc:/nvk_mesa.log`. The expected app log ends with:
 
 ```text
 unregistered_window=correctly_rejected

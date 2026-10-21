@@ -36,8 +36,8 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 - [x] Reject malformed requests and stale/unregistered window handles explicitly.
 - [x] Add a dedicated NRO smoke test that uses the adapter, creates a VI swapchain and attempts 60 presents; keep it separate from the nine upstream NXVK pass claims.
 - [x] Build and publish the adapter NRO through the NXVK GitHub Actions workflow (run `39630991475`; artifact `androidwine-nxvk-vulkan-41be63f328c4cd01954a6fd437cfa44492f59573`).
-- [ ] Run the new NRO on the user's Switch and provide its app/Mesa logs plus whether changing colors were visible.
-- [ ] Based on that run, design the real Android-window object lifecycle and Vulkan loader boundary; do not claim Android APK/NativeActivity support yet.
+- [x] Run the new NRO on the user's Switch; user log reports a passing adapter contract and 60/60 presents (2026-10-21).
+- [ ] Replace the synthetic token with a real Android-window surrogate/lifecycle API and design the Vulkan loader boundary; do not claim Android APK/NativeActivity support yet.
 
 **Scope and test instructions:** [docs/android-horizon-bridge.md](android-horizon-bridge.md). The test uses a synthetic pointer token. It is not an `ANativeWindow` ABI, Android loader export, JNI/ART implementation, or APK runner.
 
