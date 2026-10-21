@@ -11,15 +11,15 @@ make clean
 make
 ```
 
-The expected output is `androidwine_probe.nro` in the repository root. The current coding environment does not have devkitPro installed, so this NRO has not been built or hardware-tested here.
+The expected output is `androidwine_probe_v020.nro` in the repository root. The current coding environment does not have devkitPro installed, so this NRO has not been built or hardware-tested here.
 
 ## Build with GitHub Actions
 
-`.github/workflows/build-switch.yml` builds the probe in the devkitPro Switch container on pushes, pull requests, or manual dispatch. After the workflow completes, open **Actions → Build Switch probe → the successful run → Artifacts** and download `androidwine-probe-<commit-sha>`. The archive contains `androidwine_probe.nro`. The workflow must be present on GitHub and the branch pushed before it can run.
+`.github/workflows/build-switch.yml` builds the probe in the devkitPro Switch container on pushes, pull requests, or manual dispatch. After the workflow completes, open **Actions → Build Switch probe → the successful run → Artifacts** and download `androidwine-probe-v0.2.0-<commit-sha>`. The archive contains the distinctly named `androidwine_probe_v020.nro` so it can sit beside older probe builds without overwriting them. The workflow must be present on GitHub and the branch pushed before it can run.
 
 ## Run on Switch
 
-1. Copy `androidwine_probe.nro` to the SD card, for example `sdmc:/switch/androidwine_probe.nro`.
+1. Copy `androidwine_probe_v020.nro` to the SD card at `sdmc:/switch/androidwine_probe_v020.nro`; keep the filename unchanged.
 2. Launch **AndroidWine Probe v0.2** from the Homebrew Menu. The screen must show `AndroidWine Switch probe v0.2.0` and `SD mount fix build`; if it shows the old "SD mount failed" text, the old NRO is still being launched. For a full-memory test, launch it as a game override (hold **R** while launching a game) if your homebrew setup supports that.
 3. Wait for the probe screen. Press **A** once to add a marker to the log; press **Plus** to exit cleanly.
 4. Copy `sdmc:/switch/androidwine/androidwine.log` off the card and share that text log.

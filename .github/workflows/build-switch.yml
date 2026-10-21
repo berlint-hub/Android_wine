@@ -56,13 +56,13 @@ jobs:
             exit 1
           fi
           cat build.log
-          test -s androidwine_probe.nro
-          echo "::notice::Built androidwine_probe.nro ($(wc -c < androidwine_probe.nro) bytes)"
+          test -s androidwine_probe_v020.nro
+          echo "::notice::Built androidwine_probe_v020.nro ($(wc -c < androidwine_probe_v020.nro) bytes)"
 
       - name: Upload NRO artifact
         uses: actions/upload-artifact@v4
         with:
-          name: androidwine-probe-${{ github.sha }}
-          path: androidwine_probe.nro
+          name: androidwine-probe-v0.2.0-${{ github.sha }}
+          path: androidwine_probe_v020.nro
           if-no-files-found: error
           retention-days: 14

@@ -9,7 +9,7 @@ endif
 
 include $(DEVKITPRO)/libnx/switch_rules
 
-TARGET := androidwine_probe
+TARGET := androidwine_probe_v020
 BUILD := build
 SOURCES := source
 DATA :=
