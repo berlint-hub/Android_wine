@@ -35,7 +35,7 @@ It accepts one explicitly registered, opaque Android-window pointer, one Horizon
 
 A pass will verify only that the C adapter can translate this registered request into the already-working VI surface path on the target Switch. **The synthetic token is not an Android `ANativeWindow` implementation.** The test does not run Android code, load an APK, provide ART/JNI/NativeActivity, expose Android Vulkan entrypoints or prove Unity/game compatibility.
 
-The build is added to [the NXVK GitHub Actions workflow](../.github/workflows/build-nxvk-vulkan.yml), which also packages the existing nine upstream tests. The additional NRO links GPL-2.0-or-later NXVK code; the workflow artifact must retain its GPL source notice. AndroidWine's adapter source itself remains MIT-licensed.
+The build is added to [the NXVK GitHub Actions workflow](../.github/workflows/build-nxvk-vulkan.yml), which also packages the existing nine upstream tests. CI run [`39630991475`](https://github.com/berlint-hub/Android_wine/actions/runs/39630991475) successfully built and uploaded the adapter NRO; the Switch hardware run is pending. The additional NRO links GPL-2.0-or-later NXVK code; the workflow artifact retains the GPL source notice. AndroidWine's adapter source itself remains MIT-licensed.
 
 ## Remaining bridge work (in order)
 
@@ -48,7 +48,7 @@ The Android reference APK can help establish expected Android behavior, but runn
 
 ## Hardware test
 
-After the workflow succeeds, download its artifact from the successful run. Copy `androidwine_vk_android_surface_bridge.nro` to `sdmc:/switch/` and launch it from Homebrew Menu as a **game override** (hold R while launching a game). It presents changing colors for about one second and writes `sdmc:/androidwine_surface_bridge.log` plus `sdmc:/nvk_mesa.log`. Send both logs and say whether colors were visible. The expected app log ends with:
+Download artifact `androidwine-nxvk-vulkan-41be63f328c4cd01954a6fd437cfa44492f59573` from [successful run `39630991475`](https://github.com/berlint-hub/Android_wine/actions/runs/39630991475). Copy `androidwine_vk_android_surface_bridge.nro` to `sdmc:/switch/` and launch it from Homebrew Menu as a **game override** (hold R while launching a game). It presents changing colors for about one second and writes `sdmc:/androidwine_surface_bridge.log` plus `sdmc:/nvk_mesa.log`. Send both logs and say whether colors were visible. The expected app log ends with:
 
 ```text
 unregistered_window=correctly_rejected

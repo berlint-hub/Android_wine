@@ -38,7 +38,7 @@ See [docs/architecture.md](docs/architecture.md) and [docs/milestones.md](docs/m
 
 A minimal libnx probe can be built with devkitPro using `make`. It writes a diagnostic log to the SD card and checks basic Horizon services, memory reporting, and controller input. See [docs/switch-probe.md](docs/switch-probe.md). It does **not** launch a game or APK. GitHub Actions builds this diagnostic NRO. The [NXVK Vulkan test guide](docs/nxvk-vulkan-test.md) documents the successful nine-test Switch hardware run.
 
-The experimental Switch-side surface adapter source is in [bridge/](bridge/) and its limits/hardware procedure are in [docs/android-horizon-bridge.md](docs/android-horizon-bridge.md). CI and user hardware testing are pending; it is only a direct shim contract, not an Android `ANativeWindow` implementation or APK runtime.
+The experimental Switch-side surface adapter source is in [bridge/](bridge/) and its limits/hardware procedure are in [docs/android-horizon-bridge.md](docs/android-horizon-bridge.md). CI build passed; user Switch hardware testing is pending. It is only a direct shim contract, not an Android `ANativeWindow` implementation or APK runtime.
 
 The Android-only Vulkan reference APK lives in [android-vulkan-smoke/](android-vulkan-smoke/README.md), with its own pinned Android SDK/NDK GitHub Actions build. Its APK has not yet been run on an Android device. The self-authored Unity Android reference project is separate in [unity-smoke/](unity-smoke/README.md); it needs a licensed Unity 2022.3 LTS Android editor installation and remains unbuilt/untested.
 

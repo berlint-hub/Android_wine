@@ -35,7 +35,7 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 - [x] Define a direct C adapter contract from a registered opaque Android-window handle and `VkAndroidSurfaceCreateInfoKHR` to NXVK `vkCreateViSurfaceNN` plus Horizon `NWindow`.
 - [x] Reject malformed requests and stale/unregistered window handles explicitly.
 - [x] Add a dedicated NRO smoke test that uses the adapter, creates a VI swapchain and attempts 60 presents; keep it separate from the nine upstream NXVK pass claims.
-- [ ] Build and publish the adapter NRO through the NXVK GitHub Actions workflow.
+- [x] Build and publish the adapter NRO through the NXVK GitHub Actions workflow (run `39630991475`; artifact `androidwine-nxvk-vulkan-41be63f328c4cd01954a6fd437cfa44492f59573`).
 - [ ] Run the new NRO on the user's Switch and provide its app/Mesa logs plus whether changing colors were visible.
 - [ ] Based on that run, design the real Android-window object lifecycle and Vulkan loader boundary; do not claim Android APK/NativeActivity support yet.
 
