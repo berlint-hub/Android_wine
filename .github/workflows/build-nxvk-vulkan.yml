@@ -37,6 +37,19 @@ jobs:
           path: third_party/nxvk
           fetch-depth: 1
 
+      - name: Make NXVK sysroot listing non-fatal
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          script = Path("third_party/nxvk/switch/rust/build-std-sysroot.sh")
+          source = script.read_text()
+          old = '''echo "=== sysroot std rlibs ==="; ls "$SYSROOT/lib/rustlib/$TGT/lib/" | grep -E 'libstd|libcore|liballoc' | head'''
+          new = '''echo "=== sysroot std rlibs ==="; ls "$SYSROOT/lib/rustlib/$TGT/lib/" | grep -E 'libstd|libcore|liballoc' | head || true'''
+          if old not in source:
+              raise SystemExit("NXVK sysroot listing changed; review the CI compatibility patch")
+          script.write_text(source.replace(old, new, 1))
+          PY
+
       - name: Build NXVK toolchain image
         run: make -C third_party/nxvk image CONTAINER=docker
 
