@@ -40,9 +40,17 @@ This is a conceptual split, not a claim that the components already exist or tha
 
 ## First reference app: Unity Android smoke test
 
-`unity-smoke/` is a self-authored Unity project and the first Android-side reference fixture. Its Editor build helper selects an ARM64 IL2CPP player (min API 24, target API 35). At runtime it renders a diagnostic screen, reads one `StreamingAssets` file, writes/reads app-private storage, handles touch input, exercises pause/focus callbacks, and makes JNI calls to a few stable Java/Android classes. See its README for build and device-test steps.
+`unity-smoke/` is a self-authored Unity project and the first Android-side reference fixture. Its Editor build helper selects an ARM64 IL2CPP player with Vulkan as its only enabled Unity graphics API (min API 24, target API 35). At runtime it renders a diagnostic screen, verifies the selected backend, reads one `StreamingAssets` file, writes/reads app-private storage, handles touch input, exercises pause/focus callbacks, and makes JNI calls to a few stable Java/Android classes. See its README for build and device-test steps.
 
 This reference app answers the narrower question “does this Unity-generated Android app behave normally on a known Android device?” It does not itself test Horizon compatibility. The next architecture gate is to map each observed operation to a proposed Horizon implementation, identify what is absent, and only then choose a runtime strategy. Its external Google/Facebook/ads/billing/media services are deliberately excluded; Royal Kingdom's integrations remain a separate, later compatibility challenge.
+
+## Graphics direction: Vulkan-first on Horizon
+
+The intended Horizon renderer is **Vulkan-first**, using [NXVK](https://github.com/berlint-hub/nxvk) as the native Switch Vulkan driver. The Unity reference APK now explicitly enables Vulkan only, so the Android-side baseline can confirm Unity starts through that backend. If a target app only exposes Android OpenGL ES, [Zink in NXVK](https://github.com/berlint-hub/nxvk/blob/switch/switch/README.md) is a possible GLES-to-Vulkan route; it is a fallback path to validate, not a guarantee that Android EGL/window behavior is already compatible.
+
+NXVK is a graphics driver/library, not an Android Vulkan runtime: it does not supply ART, JNI/framework APIs, Android's Vulkan loader, `ANativeWindow`, or Android lifecycle/surface semantics. A Horizon implementation must bridge the app-facing Android graphics calls and surface/swapchain lifecycle to NXVK plus Horizon/libnx `NWindow`. Therefore “Vulkan-first” describes the Switch rendering backend, not a claim that APK graphics work already runs.
+
+Before integrating NXVK, account for its [license terms](https://github.com/berlint-hub/nxvk/blob/switch/switch/README.md#licensing): the project README says the Horizon port statically links the driver and treats the combined work as GPL-2.0-or-later, with corresponding source-availability obligations for distributed binaries. Confirm licensing and distribution plans before linking it into this project.
 
 ## Design principles
 

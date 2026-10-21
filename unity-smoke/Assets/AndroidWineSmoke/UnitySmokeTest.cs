@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.Rendering;
 
 namespace AndroidWine
 {
@@ -19,6 +20,7 @@ namespace AndroidWine
         private string _jniStatus = "not tested";
         private string _storageStatus = "not tested";
         private string _deviceInfo = "unknown";
+        private string _graphicsStatus = "not initialized";
         private int _tapCount;
         private Vector2 _scroll;
 
@@ -36,6 +38,10 @@ namespace AndroidWine
             Log("unity_smoke_boot");
             Log("unity_version=" + Application.unityVersion);
             Log("platform=" + Application.platform);
+            _graphicsStatus = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan
+                ? "PASS: Vulkan"
+                : "FAIL: expected Vulkan, got " + SystemInfo.graphicsDeviceType;
+            Log("graphics_backend=" + SystemInfo.graphicsDeviceType);
             Log("persistent_data_path=" + Application.persistentDataPath);
             Log("streaming_assets_path=" + Application.streamingAssetsPath);
 
@@ -149,6 +155,7 @@ namespace AndroidWine
             GUILayout.Label("This fixture tests Unity on Android; it is not a Switch runtime.");
             GUILayout.Space(12);
             GUILayout.Label("Unity: " + Application.unityVersion + " | " + SystemInfo.processorType);
+            GUILayout.Label("Graphics backend: " + _graphicsStatus, StatusStyle(_graphicsStatus));
             GUILayout.Label("Device: " + _deviceInfo);
             GUILayout.Label("JNI: " + _jniStatus, StatusStyle(_jniStatus));
             GUILayout.Label("Packaged asset: " + _assetStatus, StatusStyle(_assetStatus));

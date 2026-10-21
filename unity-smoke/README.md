@@ -2,9 +2,9 @@
 
 This is a small, self-authored Unity project intended to produce a diagnostic Android APK. It is a **future compatibility fixture**, not a Switch launcher and not evidence that Unity or Royal Kingdom runs on Horizon. The current Switch NRO still only probes Horizon services.
 
-The fixture is deliberately small and exercises the Unity/Android boundary seen in the Royal Kingdom inventory:
+The fixture is deliberately small and exercises the Unity/Android boundary seen in the Royal Kingdom inventory. Its screen and log explicitly report the active graphics backend; a run only passes the graphics check if Unity reports Vulkan:
 
-- Unity IL2CPP/ARM64 Android player startup (selected by the build script);
+- Unity IL2CPP/ARM64 Android player startup with **Vulkan as the only enabled Unity graphics API**;
 - Android JNI calls to `java.lang.System`, `android.os.Build.VERSION`, and `android.util.Log`;
 - loading a packaged `StreamingAssets` file from Android's APK-backed asset location;
 - persistent-data file write/read;
@@ -30,7 +30,7 @@ Unity editor licensing and Android modules are not available in the repository's
 ## Android-side test procedure
 
 1. Install and launch `AndroidWine Unity Smoke` on an ARM64 Android device/emulator with Android 7.0 (API 24) or newer.
-2. Confirm the screen reports Unity startup, Java/JNI status, packaged asset status, and persistent storage status.
+2. Confirm the screen reports `Graphics backend: PASS: Vulkan`, plus Java/JNI, packaged asset, and persistent storage status.
 3. Tap the screen: the displayed tap counter should increment and `unity-smoke.log` should record the event.
 4. Background and resume the app, then copy `unity-smoke.log` from the app's `Application.persistentDataPath` (the screen also displays this path).
 5. Share the log and exact device/API/ABI. Do not share unrelated app data.
