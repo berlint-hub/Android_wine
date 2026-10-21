@@ -4,3 +4,12 @@
 *.nacp
 *.elf
 *.map
+
+# Unity editor/build outputs (keep only the authored smoke-test project files)
+unity-smoke/Build/
+unity-smoke/Library/
+unity-smoke/Temp/
+unity-smoke/Obj/
+unity-smoke/Logs/
+unity-smoke/UserSettings/
+unity-smoke/*.apk

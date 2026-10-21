@@ -38,16 +38,11 @@ This is a conceptual split, not a claim that the components already exist or tha
 - **Memory and scheduling are constrained.** The runtime must fail clearly when an app's memory, threading, or service requirements exceed what the homebrew environment can provide.
 - **Compatibility must be measured per feature.** Maintain a capability matrix and test each supported API; avoid presenting one passing game as general APK support.
 
-## Suggested first test app
+## First reference app: Unity Android smoke test
 
-Create a small app whose source and assets are in this repository (or a separate clearly licensed test fixture). It should:
+`unity-smoke/` is a self-authored Unity project and the first Android-side reference fixture. Its Editor build helper selects an ARM64 IL2CPP player (min API 24, target API 35). At runtime it renders a diagnostic screen, reads one `StreamingAssets` file, writes/reads app-private storage, handles touch input, exercises pause/focus callbacks, and makes JNI calls to a few stable Java/Android classes. See its README for build and device-test steps.
 
-1. show a basic screen and a short diagnostic string;
-2. read one packaged asset;
-3. respond to a button/touch input event;
-4. report unsupported APIs instead of silently failing.
-
-Keep the first target intentionally tiny. Decide whether it is Java/Kotlin or native only after checking which runtime approach is viable on Horizon. A native-only test is useful for ABI exploration, but it does not prove general APK/Java support.
+This reference app answers the narrower question “does this Unity-generated Android app behave normally on a known Android device?” It does not itself test Horizon compatibility. The next architecture gate is to map each observed operation to a proposed Horizon implementation, identify what is absent, and only then choose a runtime strategy. Its external Google/Facebook/ads/billing/media services are deliberately excluded; Royal Kingdom's integrations remain a separate, later compatibility challenge.
 
 ## Design principles
 

@@ -22,12 +22,13 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 
 ## 2 — Define a runnable app subset
 
-- [ ] Build a small self-authored sample APK.
+- [x] Add a small self-authored Unity Android reference project (`unity-smoke/`) with visible startup, JNI, asset, storage, input, and lifecycle probes.
+- [ ] Build the fixture APK with Unity 2022.3 LTS Android modules and run it on an ARM64 Android device; save build/device logs.
 - [ ] Inventory the exact DEX, JNI, framework, graphics, audio, and storage behavior it uses.
 - [ ] Decide whether to investigate adapting an existing runtime or building a narrower runtime; record licensing and platform constraints before importing code.
 - [ ] Write a prototype design and measurable compatibility criteria before committing to an execution architecture.
 
-**Exit condition:** a reviewed design with a testable first execution path and no assumption that a shared-object loader is a full Android runtime.
+**Exit condition:** a reviewed design with a testable first execution path and no assumption that a shared-object loader is a full Android runtime. Checking in the fixture source alone does not complete this milestone.
 
 ## 3 — First end-to-end execution
 

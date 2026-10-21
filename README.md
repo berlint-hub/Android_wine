@@ -2,7 +2,7 @@
 
 An experimental homebrew project exploring how to run a **small, explicitly defined subset of Android applications** on Nintendo Switch under Horizon OS. The long-term goal is to grow compatibility incrementally; this is not currently a general-purpose Android runtime.
 
-> **Status:** project planning / architecture stage. No runtime or APK execution support exists yet.
+> **Status:** Horizon diagnostic NRO runs on hardware; a self-authored Unity-on-Android smoke-test project is now checked in as a compatibility fixture. No Android runtime or APK execution support exists, and the Unity fixture has not been built or run here.
 
 ## Target
 
@@ -25,14 +25,17 @@ These are good models for porting a known native Android app/core: replace or em
 
 1. **Horizon homebrew shell** — the initial probe is in place; build and run it on hardware to verify display/input/storage/memory diagnostics.
 2. **Host-side APK inspection tool** — list package metadata, ABI variants, native libraries, and assets without executing the APK. This gives us a safe, testable way to characterize a target app.
-3. **Runtime research and smallest executable test** — choose one self-authored Android test app and define the exact API/ABI subset it needs before implementing execution. Loading a `.so` alone does not count as APK support.
-4. **Incremental compatibility** — add only the Android APIs required by the test app, with explicit unsupported-feature reporting.
+3. **Unity Android smoke-test fixture** — `unity-smoke/` contains a self-authored Unity project that tests ARM64 IL2CPP startup, JNI, packaged assets, persistent storage, touch input, and lifecycle on Android. It establishes a reference app; it does not run on Switch.
+4. **Runtime research and smallest executable test** — compare the fixture's behavior with the Horizon environment and define a realistic execution subset before implementing APK execution. Loading a `.so` alone does not count as APK support.
+5. **Incremental compatibility** — add only the Android APIs required by the test app, with explicit unsupported-feature reporting.
 
 See [docs/architecture.md](docs/architecture.md) and [docs/milestones.md](docs/milestones.md).
 
 ## Build status
 
-A minimal libnx probe can be built with devkitPro using `make`. It writes a diagnostic log to the SD card and checks basic Horizon services, memory reporting, and controller input. See [docs/switch-probe.md](docs/switch-probe.md). It does **not** launch a game or APK. The build has not been verified in this sandbox because devkitPro/libnx is not installed here.
+A minimal libnx probe can be built with devkitPro using `make`. It writes a diagnostic log to the SD card and checks basic Horizon services, memory reporting, and controller input. See [docs/switch-probe.md](docs/switch-probe.md). It does **not** launch a game or APK. GitHub Actions builds this diagnostic NRO; devkitPro/libnx is not installed in this sandbox.
+
+The self-authored Android reference fixture is in [unity-smoke/](unity-smoke/README.md). It needs a licensed Unity 2022.3 LTS Android editor installation and is not part of the NRO CI build. A successful fixture run on Android would not imply it runs on Switch.
 
 ## Legal and safety
 
