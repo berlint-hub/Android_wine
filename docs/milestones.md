@@ -20,6 +20,16 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 
 **Test instructions:** [docs/nxvk-vulkan-test.md](nxvk-vulkan-test.md). The smoke NROs statically link NXVK and are subject to its GPL-2.0-or-later terms.
 
+## 0.6 — Android Vulkan reference (not Switch support)
+
+- [x] Add a minimal NativeActivity APK probing Android Vulkan loader/extensions, `ANativeWindow` surface, graphics/present queue, swapchain, and 180 clear/present frames.
+- [x] Add a pinned GitHub Actions Android SDK/NDK/Gradle build and reproducible install/log-capture instructions.
+- [ ] Obtain a successful CI APK build and artifact.
+- [ ] Run on an Android arm64 device; retain device details and logcat/private app logs.
+- [ ] Compare Android results with the already-passing native NXVK `VK_NN_vi_surface` tests; do not infer an Android-to-Horizon bridge from either result alone.
+
+**Test instructions:** [android-vulkan-smoke/README.md](../android-vulkan-smoke/README.md). This is an Android reference only; it neither launches APKs on Switch nor tests Unity/JNI.
+
 ## 1 — APK inspection (host tool)
 
 - [ ] Safely enumerate APK ZIP entries and reject malformed/path-traversal inputs.

@@ -5,6 +5,11 @@
 *.elf
 *.map
 
+# Android Vulkan smoke Gradle/NDK outputs
+/android-vulkan-smoke/.gradle/
+/android-vulkan-smoke/app/build/
+/android-vulkan-smoke/*.apk
+
 # Unity editor/build outputs (keep only the authored smoke-test project files)
 unity-smoke/Build/
 unity-smoke/Library/
