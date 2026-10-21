@@ -21,7 +21,7 @@ The expected output is `androidwine_probe.nro` in the repository root. The curre
 
 1. Copy `androidwine_probe.nro` to the SD card, for example `sdmc:/switch/androidwine_probe.nro`.
 2. Launch it from the Homebrew Menu. For a full-memory test, launch it as a game override (hold **R** while launching a game) if your homebrew setup supports that.
-3. Wait for the probe screen. Press **A** once to add a marker to the log; press **B** or **HOME** to exit cleanly.
+3. Wait for the probe screen. Press **A** once to add a marker to the log; press **Plus** to exit cleanly.
 4. Copy `sdmc:/switch/androidwine/androidwine.log` off the card and share that text log.
 
 The log appends a new boot/exit section on each run. It records the libnx/SD mount result, memory-query results, and button transitions. Each diagnostic event is flushed and synced to the SD card where the filesystem supports it. It does not capture a Switch fatal-error report if the process or console crashes before the runtime can log the failure.

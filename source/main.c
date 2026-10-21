@@ -112,6 +112,9 @@ int main(int argc, char **argv)
     (void)argv;
 
     consoleInit(NULL);
+    padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+    PadState pad;
+    padInitializeDefault(&pad);
     open_log();
 
     printf("AndroidWine — Switch bring-up probe\n");
@@ -120,8 +123,7 @@ int main(int argc, char **argv)
     printf("It does not run APKs or Android games yet.\n\n");
     printf("Log: %s\n\n", g_log_status);
     printf("A: write a test marker to the log\n");
-    printf("B: exit\n");
-    printf("HOME: exit\n\n");
+    printf("Plus: exit\n\n");
     printf("Run as a game override (hold R while launching\n");
     printf("a title) if you want to test with full memory.\n");
     printf("Please copy the log from the SD card after exit.\n");
@@ -132,17 +134,17 @@ int main(int argc, char **argv)
 
     u64 previous_down = 0;
     while (appletMainLoop()) {
-        hidScanInput();
-        u64 down = hidKeysDown(CONTROLLER_P1_AUTO);
+        padUpdate(&pad);
+        u64 down = padGetButtonsDown(&pad);
         if (down != 0 && down != previous_down)
             log_message("INPUT", "buttons_down=0x%016" PRIx64, down);
 
-        if (down & KEY_A) {
+        if (down & HidNpadButton_A) {
             log_message("INFO", "user_marker=A");
             printf("\nMarker written.\n");
         }
-        if (down & KEY_B) {
-            log_message("INFO", "exit_requested=B");
+        if (down & HidNpadButton_Plus) {
+            log_message("INFO", "exit_requested=Plus");
             break;
         }
 
