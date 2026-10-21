@@ -41,6 +41,7 @@ export INCLUDE := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
                  $(foreach dir,$(LIBDIRS),-I$(dir)/include) \
                  -I$(CURDIR)/$(BUILD)
 export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+export LD := $(CXX)
 export NROFLAGS += --nacp=$(CURDIR)/$(TARGET).nacp
 export NACPFLAGS += --titleid=0100A0D012345000
 

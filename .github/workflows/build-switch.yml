@@ -47,7 +47,15 @@ jobs:
           set -eu
           . "$DEVKITPRO/switchvars.sh"
           make clean
-          make -j"$(nproc)"
+          if ! make -j"$(nproc)" > build.log 2>&1; then
+            echo "::group::Build log tail"
+            tail -n 60 build.log | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            echo "::endgroup::"
+            exit 1
+          fi
+          cat build.log
           test -s androidwine_probe.nro
           file androidwine_probe.nro
 
