@@ -1,0 +1,51 @@
+name: Build Switch probe
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: switch-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build NRO
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/devkitpro/devkita64:latest
+      options: --user root
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Verify devkitPro toolchain
+        run: |
+          set -eu
+          test -n "$DEVKITPRO"
+          test -f "$DEVKITPRO/libnx/switch_rules"
+          command -v aarch64-none-elf-gcc
+          command -v elf2nro
+          aarch64-none-elf-gcc --version | head -n 1
+
+      - name: Build diagnostic NRO
+        run: |
+          set -eu
+          make clean
+          make -j"$(nproc)"
+          test -s androidwine_probe.nro
+          file androidwine_probe.nro
+
+      - name: Upload NRO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: androidwine-probe-${{ github.sha }}
+          path: androidwine_probe.nro
+          if-no-files-found: error
+          retention-days: 14

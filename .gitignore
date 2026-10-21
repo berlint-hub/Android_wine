@@ -1,0 +1,6 @@
+# devkitPro/libnx build outputs
+/build/
+*.nro
+*.nacp
+*.elf
+*.map
