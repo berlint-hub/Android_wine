@@ -1,0 +1,74 @@
+name: Build NXVK Vulkan smoke tests
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/build-nxvk-vulkan.yml"
+      - "docs/nxvk-vulkan-test.md"
+  pull_request:
+    paths:
+      - ".github/workflows/build-nxvk-vulkan.yml"
+      - "docs/nxvk-vulkan-test.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nxvk-vulkan-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Vulkan NROs
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out AndroidWine
+        uses: actions/checkout@v4
+
+      - name: Check out pinned NXVK source
+        uses: actions/checkout@v4
+        with:
+          repository: berlint-hub/nxvk
+          ref: 1b7c38f6151b7cde61500d0a1e984b984587f706
+          path: third_party/nxvk
+          fetch-depth: 1
+
+      - name: Build NXVK toolchain image
+        run: make -C third_party/nxvk image CONTAINER=docker
+
+      - name: Build Vulkan compute and present tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -C third_party/nxvk nro APP=nvk_smoke CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Compute Smoke"
+          make -C third_party/nxvk nro APP=nvk_vi_swapchain CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Present Smoke"
+
+          mkdir -p nxvk-artifacts
+          cp third_party/nxvk/switch/smoke/out/nvk_smoke.nro nxvk-artifacts/androidwine_vk_compute.nro
+          cp third_party/nxvk/switch/smoke/out/nvk_vi_swapchain.nro nxvk-artifacts/androidwine_vk_present.nro
+          cp third_party/nxvk/licenses/GPL-2.0-or-later nxvk-artifacts/
+          cat > nxvk-artifacts/SOURCE.txt <<'EOF'
+          AndroidWine NXVK Vulkan smoke-test binaries
+
+          Driver and validation app source: https://github.com/berlint-hub/nxvk/tree/1b7c38f6151b7cde61500d0a1e984b984587f706
+          The two NROs are statically linked with NXVK/NVK and the upstream validation programs.
+          NXVK marks its Switch-specific code and validation programs GPL-2.0-or-later; see the
+          included license and the pinned source tree. The artifact is for hardware diagnostics.
+          EOF
+          find nxvk-artifacts -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
+          test -s nxvk-artifacts/androidwine_vk_compute.nro
+          test -s nxvk-artifacts/androidwine_vk_present.nro
+
+      - name: Upload Vulkan NROs and source notice
+        uses: actions/upload-artifact@v4
+        with:
+          name: androidwine-nxvk-vulkan-${{ github.sha }}
+          path: nxvk-artifacts/
+          if-no-files-found: error
+          retention-days: 14

@@ -11,6 +11,15 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 
 **Exit condition:** a reproducible build plus a recorded manual test procedure. This proves only the homebrew shell, not Android compatibility.
 
+## 0.5 — Switch Vulkan/NXVK proof
+
+- [x] Pin an NXVK revision and define compute-submission plus visible-present tests.
+- [ ] Build both validation NROs through GitHub Actions and publish their source/license notice.
+- [ ] Run them as a game override on hardware; verify the compute log, visible color-changing swapchain, and present log.
+- [ ] Record any HOS/driver limitations; do not infer Android Vulkan or APK support from a passing native Vulkan test.
+
+**Test instructions:** [docs/nxvk-vulkan-test.md](nxvk-vulkan-test.md). The smoke NROs statically link NXVK and are subject to its GPL-2.0-or-later terms.
+
 ## 1 — APK inspection (host tool)
 
 - [ ] Safely enumerate APK ZIP entries and reject malformed/path-traversal inputs.

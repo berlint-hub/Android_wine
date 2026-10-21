@@ -13,3 +13,7 @@ unity-smoke/Obj/
 unity-smoke/Logs/
 unity-smoke/UserSettings/
 unity-smoke/*.apk
+
+# External NXVK source and Vulkan validation build artifacts
+/third_party/nxvk/
+/nxvk-artifacts/

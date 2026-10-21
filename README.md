@@ -2,7 +2,7 @@
 
 An experimental homebrew project exploring how to run a **small, explicitly defined subset of Android applications** on Nintendo Switch under Horizon OS. The long-term goal is to grow compatibility incrementally; this is not currently a general-purpose Android runtime.
 
-> **Status:** Horizon diagnostic NRO runs on hardware; a self-authored Unity-on-Android smoke-test project is now checked in as a compatibility fixture. No Android runtime or APK execution support exists, and the Unity fixture has not been built or run here.
+> **Status:** Horizon diagnostic NRO runs on hardware; an NXVK-based Vulkan smoke-test build has been added to GitHub Actions but still needs a successful build and Switch hardware run. A self-authored Unity-on-Android fixture is source-only. No Android runtime or APK execution support exists.
 
 ## Target
 
@@ -26,14 +26,15 @@ These are good models for porting a known native Android app/core: replace or em
 1. **Horizon homebrew shell** — the initial probe is in place; build and run it on hardware to verify display/input/storage/memory diagnostics.
 2. **Host-side APK inspection tool** — list package metadata, ABI variants, native libraries, and assets without executing the APK. This gives us a safe, testable way to characterize a target app.
 3. **Unity Android smoke-test fixture** — `unity-smoke/` contains a self-authored Unity project that tests ARM64 IL2CPP startup, JNI, packaged assets, persistent storage, touch input, and lifecycle on Android. It establishes a reference app; it does not run on Switch.
-4. **Runtime research and smallest executable test** — compare the fixture's behavior with the Horizon environment and define a realistic execution subset before implementing APK execution. Loading a `.so` alone does not count as APK support.
-5. **Incremental compatibility** — add only the Android APIs required by the test app, with explicit unsupported-feature reporting.
+4. **Switch Vulkan path** — build and hardware-test two pinned NXVK validation NROs (compute submission and visible swapchain present) before attempting an Android graphics bridge. See [docs/nxvk-vulkan-test.md](docs/nxvk-vulkan-test.md).
+5. **Runtime research and smallest executable test** — compare the Unity fixture's behavior with Horizon and define a realistic execution subset before implementing APK execution. Loading a `.so` alone does not count as APK support.
+6. **Incremental compatibility** — add only the Android APIs required by the test app, with explicit unsupported-feature reporting.
 
 See [docs/architecture.md](docs/architecture.md) and [docs/milestones.md](docs/milestones.md).
 
 ## Build status
 
-A minimal libnx probe can be built with devkitPro using `make`. It writes a diagnostic log to the SD card and checks basic Horizon services, memory reporting, and controller input. See [docs/switch-probe.md](docs/switch-probe.md). It does **not** launch a game or APK. GitHub Actions builds this diagnostic NRO; devkitPro/libnx is not installed in this sandbox.
+A minimal libnx probe can be built with devkitPro using `make`. It writes a diagnostic log to the SD card and checks basic Horizon services, memory reporting, and controller input. See [docs/switch-probe.md](docs/switch-probe.md). It does **not** launch a game or APK. GitHub Actions builds this diagnostic NRO. A separate [NXVK Vulkan smoke workflow](docs/nxvk-vulkan-test.md) builds driver validation NROs; those still need a hardware run.
 
 The self-authored Android reference fixture is in [unity-smoke/](unity-smoke/README.md). It needs a licensed Unity 2022.3 LTS Android editor installation and is not part of the NRO CI build. A successful fixture run on Android would not imply it runs on Switch.
 
