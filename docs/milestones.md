@@ -14,7 +14,7 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 ## 0.5 — Switch Vulkan/NXVK proof
 
 - [x] Pin an NXVK revision and define compute-submission plus visible-present tests.
-- [ ] Build both validation NROs through GitHub Actions and publish their source/license notice.
+- [x] Build both validation NROs through GitHub Actions and publish their source/license notice (run `39589514932`, artifact `androidwine-nxvk-vulkan-e754aee4451893aeb113a5e3fc55ecbbe41c7915`).
 - [ ] Run them as a game override on hardware; verify the compute log, visible color-changing swapchain, and present log.
 - [ ] Record any HOS/driver limitations; do not infer Android Vulkan or APK support from a passing native Vulkan test.
 

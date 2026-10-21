@@ -2,7 +2,7 @@
 
 An experimental homebrew project exploring how to run a **small, explicitly defined subset of Android applications** on Nintendo Switch under Horizon OS. The long-term goal is to grow compatibility incrementally; this is not currently a general-purpose Android runtime.
 
-> **Status:** Horizon diagnostic NRO runs on hardware; an NXVK-based Vulkan smoke-test build has been added to GitHub Actions but still needs a successful build and Switch hardware run. A self-authored Unity-on-Android fixture is source-only. No Android runtime or APK execution support exists.
+> **Status:** Horizon diagnostic NRO runs on hardware, and GitHub Actions has built two NXVK Vulkan smoke-test NROs. They still need a Switch hardware run. The self-authored Unity-on-Android fixture is source-only. No Android runtime or APK execution support exists.
 
 ## Target
 
