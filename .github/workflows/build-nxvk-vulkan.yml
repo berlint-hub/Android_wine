@@ -56,6 +56,9 @@ jobs:
       - name: Build NXVK toolchain image
         run: make -C third_party/nxvk image CONTAINER=docker
 
+      - name: Generate Vulkan smoke-test shaders
+        run: docker run --rm -v "$PWD/third_party/nxvk:/work:z" -w /work nxvk bash switch/smoke/shaders/gen-shaders.sh
+
       - name: Build Vulkan compute, shader, and present tests
         shell: bash
         run: |
