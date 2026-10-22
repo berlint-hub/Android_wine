@@ -1,0 +1,68 @@
+name: Build Switch probe
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: switch-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build NRO
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/devkitpro/devkita64:latest
+      options: --user root
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Verify devkitPro toolchain
+        run: |
+          set -eu
+          test -n "$DEVKITPRO"
+          test -f "$DEVKITPRO/switchvars.sh"
+          . "$DEVKITPRO/switchvars.sh"
+          test -f "$DEVKITPRO/libnx/switch_rules"
+          for tool in aarch64-none-elf-gcc elf2nro; do
+            tool_path=$(command -v "$tool" || true)
+            if [ -z "$tool_path" ]; then
+              echo "::error::Missing $tool after loading switchvars.sh; PATH=$PATH"
+              exit 1
+            fi
+            echo "::notice::$tool=$tool_path"
+          done
+          aarch64-none-elf-gcc --version | head -n 1
+
+      - name: Build diagnostic NRO
+        run: |
+          set -eu
+          . "$DEVKITPRO/switchvars.sh"
+          make clean
+          if ! make -j"$(nproc)" > build.log 2>&1; then
+            echo "::group::Build log tail"
+            tail -n 60 build.log | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            echo "::endgroup::"
+            exit 1
+          fi
+          cat build.log
+          test -s androidwine_probe_v020.nro
+          echo "::notice::Built androidwine_probe_v020.nro ($(wc -c < androidwine_probe_v020.nro) bytes)"
+
+      - name: Upload NRO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: androidwine-probe-v0.2.0-${{ github.sha }}
+          path: androidwine_probe_v020.nro
+          if-no-files-found: error
+          retention-days: 14

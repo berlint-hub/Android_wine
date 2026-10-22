@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.androidwine.vulkansmoke">
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="35" />
+    <uses-feature android:name="android.hardware.vulkan.level" android:required="false" />
+    <uses-feature android:name="android.hardware.vulkan.version" android:required="false" />
+    <application
+        android:allowBackup="false"
+        android:hasCode="false"
+        android:label="AndroidWine Vulkan Smoke"
+        android:debuggable="true">
+        <activity
+            android:name="android.app.NativeActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|keyboard"
+            android:exported="true"
+            android:label="AndroidWine Vulkan Smoke"
+            android:screenOrientation="landscape">
+            <meta-data android:name="android.app.lib_name" android:value="androidwine_vk_probe" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

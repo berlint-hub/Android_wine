@@ -1,0 +1,57 @@
+name: Build Android Vulkan smoke APK
+
+on:
+  push:
+    paths:
+      - 'android-vulkan-smoke/**'
+      - '.github/workflows/build-android-vulkan-smoke.yml'
+  pull_request:
+    paths:
+      - 'android-vulkan-smoke/**'
+      - '.github/workflows/build-android-vulkan-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-android-vulkan-smoke:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK and NDK
+        uses: android-actions/setup-android@v4.0.4
+
+      - name: Install pinned Android build components
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build arm64 debug APK
+        working-directory: android-vulkan-smoke
+        run: gradle --no-daemon :app:assembleDebug
+
+      - name: Prepare artifact and checksum
+        run: |
+          mkdir -p dist
+          cp android-vulkan-smoke/app/build/outputs/apk/debug/app-debug.apk dist/androidwine-android-vulkan-smoke-debug.apk
+          sha256sum dist/androidwine-android-vulkan-smoke-debug.apk > dist/SHA256SUMS.txt
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: androidwine-android-vulkan-smoke-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,107 @@
+name: Build Android native loader fixture
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "android-native-fixture/**"
+      - "docs/android-native-loader-design.md"
+      - "tools/**"
+      - "runtime/**"
+      - "bridge/androidwine_native_window.c"
+      - "bridge/androidwine_native_window.h"
+      - ".github/workflows/build-android-native-fixture.yml"
+  pull_request:
+    paths:
+      - "android-native-fixture/**"
+      - "docs/android-native-loader-design.md"
+      - "tools/**"
+      - "runtime/**"
+      - "bridge/androidwine_native_window.c"
+      - "bridge/androidwine_native_window.h"
+      - ".github/workflows/build-android-native-fixture.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-fixture:
+    name: Build and inspect ARM64 shared-library fixture
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+
+      - name: Set up Android SDK and NDK
+        uses: android-actions/setup-android@v4.0.4
+
+      - name: Install pinned Android build components
+        run: sdkmanager "ndk;27.2.12479018" "cmake;3.22.1"
+
+      - name: Build Android ARM64 shared library
+        run: |
+          set -euo pipefail
+          NDK="$ANDROID_HOME/ndk/27.2.12479018"
+          CMAKE="$ANDROID_HOME/cmake/3.22.1/bin/cmake"
+          "$CMAKE" -S android-native-fixture -B build/android-native-fixture \
+            -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-24 \
+            -DANDROID_NDK="$NDK" \
+            -DCMAKE_BUILD_TYPE=Release
+          "$CMAKE" --build build/android-native-fixture --parallel 2
+
+      - name: Test bounded host ELF inspector
+        run: python3 -m unittest discover -s tools -p 'test_*.py' -v
+
+      - name: Test fixture-scoped import resolver
+        run: |
+          set -euo pipefail
+          mkdir -p build/host-tests
+          cc -std=c11 -Wall -Wextra -Werror \
+            -Itools/stubs -Ibridge -Iruntime \
+            runtime/androidwine_elf_imports.c \
+            bridge/androidwine_native_window.c \
+            tools/test_elf_import_resolver.c \
+            -o build/host-tests/test_elf_import_resolver
+          build/host-tests/test_elf_import_resolver
+
+      - name: Record ELF metadata without executing the fixture
+        run: |
+          set -euo pipefail
+          NDK="$ANDROID_HOME/ndk/27.2.12479018"
+          READELF="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf"
+          LIB="build/android-native-fixture/libandroidwine_loader_fixture.so"
+          test -s "$LIB"
+          mkdir -p dist
+          cp "$LIB" dist/
+          "$READELF" -h -d --dyn-syms -r "$LIB" > dist/ELF-IMPORT-INVENTORY.txt
+          python3 tools/android_elf_inventory.py "$LIB" --pretty > dist/ELF-ANDROIDWINE-INVENTORY.json
+          cat dist/ELF-IMPORT-INVENTORY.txt
+          cat dist/ELF-ANDROIDWINE-INVENTORY.json
+          {
+            echo '### Android native fixture ELF inventory'
+            echo
+            echo 'The self-authored library was built for metadata inspection only; it was not executed.'
+            echo
+            echo '#### llvm-readelf'
+            echo '```text'
+            cat dist/ELF-IMPORT-INVENTORY.txt
+            echo '```'
+            echo
+            echo '#### AndroidWine bounds-checked inspector'
+            echo '```json'
+            cat dist/ELF-ANDROIDWINE-INVENTORY.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          sha256sum dist/libandroidwine_loader_fixture.so > dist/SHA256SUMS.txt
+
+      - name: Upload fixture and ELF inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: androidwine-loader-fixture-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30

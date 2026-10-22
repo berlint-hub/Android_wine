@@ -1,0 +1,169 @@
+name: Build NXVK Vulkan smoke tests
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/build-nxvk-vulkan.yml"
+      - "docs/nxvk-vulkan-test.md"
+      - "docs/android-horizon-bridge.md"
+      - "bridge/**"
+  pull_request:
+    paths:
+      - ".github/workflows/build-nxvk-vulkan.yml"
+      - "docs/nxvk-vulkan-test.md"
+      - "docs/android-horizon-bridge.md"
+      - "bridge/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nxvk-vulkan-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Vulkan NROs
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out AndroidWine
+        uses: actions/checkout@v4
+
+      - name: Check out pinned NXVK source
+        uses: actions/checkout@v4
+        with:
+          repository: berlint-hub/nxvk
+          ref: 1b7c38f6151b7cde61500d0a1e984b984587f706
+          path: third_party/nxvk
+          fetch-depth: 1
+
+      - name: Patch NXVK sysroot for Docker-host permissions and diagnostics
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          script = Path("third_party/nxvk/switch/rust/build-std-sysroot.sh")
+          source = script.read_text()
+          old = '''echo "=== sysroot std rlibs ==="; ls "$SYSROOT/lib/rustlib/$TGT/lib/" | grep -E 'libstd|libcore|liballoc' | head'''
+          new = '''echo "=== sysroot std rlibs ==="; ls "$SYSROOT/lib/rustlib/$TGT/lib/" | grep -E 'libstd|libcore|liballoc' | head || true'''
+          mkdir_line = 'mkdir -p "$SYSROOT/lib/rustlib/$TGT/lib"'
+          writable_mkdir = mkdir_line + '\nchmod 0777 "$SYSROOT"'
+          if old not in source or mkdir_line not in source:
+              raise SystemExit("NXVK sysroot script changed; review the CI compatibility patch")
+          source = source.replace(old, new, 1)
+          script.write_text(source.replace(mkdir_line, writable_mkdir, 1))
+          PY
+
+      - name: Build NXVK toolchain image
+        run: make -C third_party/nxvk image CONTAINER=docker
+
+      - name: Generate Vulkan smoke-test shaders
+        run: docker run --rm -v "$PWD/third_party/nxvk:/work:z" -w /work nxvk bash switch/smoke/shaders/gen-shaders.sh
+
+      - name: Stage AndroidWine ANativeWindow bridge smoke sources
+        run: |
+          cp bridge/androidwine_native_window.h third_party/nxvk/switch/smoke/
+          cp bridge/androidwine_native_window.c third_party/nxvk/switch/smoke/
+          cp bridge/androidwine_vk_surface_adapter.h third_party/nxvk/switch/smoke/
+          cp bridge/androidwine_vk_surface_adapter.c third_party/nxvk/switch/smoke/
+          cp bridge/androidwine_vk_surface_bridge_smoke.c third_party/nxvk/switch/smoke/androidwine_surface_bridge.c
+
+      - name: Build Vulkan compute, shader, and present tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_logged() {
+            local label="$1"
+            shift
+            local logfile="nxvk-${label}.log"
+            if "$@" >"$logfile" 2>&1; then
+              tail -n 40 "$logfile"
+            else
+              local status=$?
+              echo "::group::NXVK ${label} build log (last 180 lines)"
+              tail -n 180 "$logfile"
+              echo "::endgroup::"
+              while IFS= read -r line; do
+                echo "::error::$line"
+              done < <(tail -n 8 "$logfile")
+              return "$status"
+            fi
+          }
+
+          run_logged compute make -C third_party/nxvk nro APP=nvk_smoke CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Compute Smoke"
+          run_logged triangle make -C third_party/nxvk nro APP=nvk_tri CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Shader Smoke"
+          run_logged texture make -C third_party/nxvk nro APP=nvk_logo CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Texture Smoke"
+          run_logged scene make -C third_party/nxvk nro APP=nvk_scene CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Scene Smoke"
+          run_logged indexed make -C third_party/nxvk nro APP=nvk_indexed CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Indexed Draw Smoke"
+          run_logged multi make -C third_party/nxvk nro APP=nvk_multi CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Multi Draw Smoke"
+          run_logged textures make -C third_party/nxvk nro APP=nvk_textures CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Mipmap Smoke"
+          run_logged cubemap make -C third_party/nxvk nro APP=nvk_cubemap CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Cubemap Smoke"
+          run_logged present make -C third_party/nxvk nro APP=nvk_vi_swapchain CONTAINER=docker \
+            TITLE="AndroidWine Vulkan Present Smoke"
+          run_logged android-surface-bridge make -C third_party/nxvk nro APP=androidwine_surface_bridge CONTAINER=docker \
+            TITLE="AndroidWine ANativeWindow Bridge Smoke"
+
+          mkdir -p nxvk-artifacts
+          cp third_party/nxvk/switch/smoke/out/nvk_smoke.nro nxvk-artifacts/androidwine_vk_compute.nro
+          cp third_party/nxvk/switch/smoke/out/nvk_tri.nro nxvk-artifacts/androidwine_vk_triangle.nro
+          cp third_party/nxvk/switch/smoke/out/nvk_logo.nro nxvk-artifacts/androidwine_vk_texture.nro
+          cp third_party/nxvk/switch/smoke/out/nvk_scene.nro nxvk-artifacts/androidwine_vk_scene.nro
+          cp third_party/nxvk/switch/smoke/out/nvk_indexed.nro nxvk-artifacts/androidwine_vk_indexed.nro
+          cp third_party/nxvk/switch/smoke/out/nvk_multi.nro nxvk-artifacts/androidwine_vk_multi.nro
+          cp third_party/nxvk/switch/smoke/out/nvk_textures.nro nxvk-artifacts/androidwine_vk_textures.nro
+          cp third_party/nxvk/switch/smoke/out/nvk_cubemap.nro nxvk-artifacts/androidwine_vk_cubemap.nro
+          cp third_party/nxvk/switch/smoke/out/nvk_vi_swapchain.nro nxvk-artifacts/androidwine_vk_present.nro
+          cp third_party/nxvk/switch/smoke/out/androidwine_surface_bridge.nro nxvk-artifacts/androidwine_vk_android_surface_bridge.nro
+          cp third_party/nxvk/licenses/GPL-2.0-or-later nxvk-artifacts/
+          cp LICENSE nxvk-artifacts/ANDROIDWINE-MIT-LICENSE
+          cat > nxvk-artifacts/SOURCE.txt <<EOF
+          AndroidWine NXVK Vulkan smoke-test binaries
+
+          Driver and upstream validation source: https://github.com/berlint-hub/nxvk/tree/1b7c38f6151b7cde61500d0a1e984b984587f706
+          AndroidWine bridge source: https://github.com/berlint-hub/Android_wine/tree/${GITHUB_SHA}/bridge
+          The nine upstream NROs are statically linked with NXVK/NVK. The additional
+          androidwine_vk_android_surface_bridge.nro combines the pinned NXVK/NVK driver,
+          upstream harness, and AndroidWine's opaque ANativeWindow subset plus bridge smoke source.
+          NXVK marks its Switch-specific code and validation programs GPL-2.0-or-later; see the
+          included license and pinned source tree. AndroidWine bridge source is MIT-licensed;
+          its license is also included. This combined diagnostic binary is packaged with source notices.
+          EOF
+          find nxvk-artifacts -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
+          test -s nxvk-artifacts/androidwine_vk_compute.nro
+          test -s nxvk-artifacts/androidwine_vk_triangle.nro
+          test -s nxvk-artifacts/androidwine_vk_texture.nro
+          test -s nxvk-artifacts/androidwine_vk_scene.nro
+          test -s nxvk-artifacts/androidwine_vk_indexed.nro
+          test -s nxvk-artifacts/androidwine_vk_multi.nro
+          test -s nxvk-artifacts/androidwine_vk_textures.nro
+          test -s nxvk-artifacts/androidwine_vk_cubemap.nro
+          test -s nxvk-artifacts/androidwine_vk_present.nro
+          test -s nxvk-artifacts/androidwine_vk_android_surface_bridge.nro
+
+      - name: Upload NXVK build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nxvk-build-logs-${{ github.sha }}
+          path: nxvk-*.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload Vulkan NROs and source notice
+        uses: actions/upload-artifact@v4
+        with:
+          name: androidwine-nxvk-vulkan-${{ github.sha }}
+          path: nxvk-artifacts/
+          if-no-files-found: error
+          retention-days: 14
