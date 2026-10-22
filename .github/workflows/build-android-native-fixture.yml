@@ -56,6 +56,15 @@ jobs:
           cp "$LIB" dist/
           "$READELF" -h -d --dyn-syms -r "$LIB" > dist/ELF-IMPORT-INVENTORY.txt
           cat dist/ELF-IMPORT-INVENTORY.txt
+          {
+            echo '### Android native fixture ELF inventory'
+            echo
+            echo 'The self-authored library was built for metadata inspection only; it was not executed.'
+            echo
+            echo '```text'
+            cat dist/ELF-IMPORT-INVENTORY.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
           sha256sum dist/libandroidwine_loader_fixture.so > dist/SHA256SUMS.txt
 
       - name: Upload fixture and ELF inventory
