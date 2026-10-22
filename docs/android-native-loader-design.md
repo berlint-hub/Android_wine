@@ -33,7 +33,7 @@ The app-facing layer must own capability negotiation; it must not blindly forwar
 
 ## Safe first fixture and evidence ladder
 
-Build a self-authored ARM64 Android shared-library fixture (not a commercial APK) that has one exported entrypoint and an intentionally small, known import surface. Use the Android NDK in GitHub Actions to record its ELF metadata. The initial stages should be:
+A self-authored ARM64 Android shared-library fixture (not a commercial APK) is now built in GitHub Actions. Push run [`39739901266`](https://github.com/berlint-hub/Android_wine/actions/runs/39739901266) and PR run [`39739909084`](https://github.com/berlint-hub/Android_wine/actions/runs/39739909084) produced artifact `androidwine-loader-fixture-28eb9c687bfc17279f0e12a159e772c19710d0c1`, containing the `.so` and an `llvm-readelf` inventory. The workflow builds and inspects but does not execute the library. Review that inventory before selecting any loader features. The initial stages should be:
 
 1. **Inspect only:** report ELF class/endianness/machine, `DT_NEEDED`, undefined dynamic symbols, symbol versions, and relocation types. Add malformed-file and bounds tests. Do not execute it.
 2. **Loader proof:** load a fixture that uses only explicitly implemented relocations and a tiny set of stubs; call one entrypoint and capture each import-resolution decision in a debug log. This is a native-module loader test, not APK support.
@@ -45,4 +45,4 @@ The first fixture should be tiny enough that its required imports and relocation
 
 ## Immediate implementation decision
 
-Before writing loader code, build and inspect the self-authored `.so` fixture and commit its exact dependency/import/relocation inventory. Use that inventory to select the first loader subset; do not guess a broad relocation or Bionic compatibility target. Keep the parser/inspector host-testable and keep execution behind a separate opt-in loader test.
+Before writing loader code, review the self-authored `.so` fixture's generated dependency/import/relocation inventory and commit the exact supported target. Use that inventory to select the first loader subset; do not guess a broad relocation or Bionic compatibility target. Keep the parser/inspector host-testable and keep execution behind a separate opt-in loader test.

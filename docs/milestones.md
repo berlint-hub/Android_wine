@@ -66,9 +66,10 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 
 - [x] Separate package/ELF inspection, ELF execution/import shims, Android-facing Vulkan dispatch, NXVK, and managed runtime as distinct gates.
 - [x] Specify conditional Android extension reporting and explicit rejection of unsupported Vulkan features.
-- [ ] Build a self-authored ARM64 Android `.so` fixture in GitHub Actions and record its dependencies, undefined imports, symbol versions, and relocation types.
+- [x] Build a self-authored ARM64 Android `.so` fixture in GitHub Actions and generate its dynamic dependency/symbol/relocation inventory (push run `39739901266`; PR run `39739909084`; artifact `androidwine-loader-fixture-28eb9c687bfc17279f0e12a159e772c19710d0c1`).
+- [ ] Review the artifact's exact import/relocation inventory and choose the first loader subset.
 - [ ] Add host-side bounds-checked ELF inspection tests; do not execute parsed inputs.
-- [ ] Select and implement only the loader/import subset required by the reviewed fixture.
+- [ ] Implement only the loader/import subset required by the reviewed fixture.
 
 **Design:** [docs/android-native-loader-design.md](android-native-loader-design.md). This design is not a loader implementation or APK support.
 
