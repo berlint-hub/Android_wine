@@ -8,12 +8,18 @@ on:
       - "android-native-fixture/**"
       - "docs/android-native-loader-design.md"
       - "tools/**"
+      - "runtime/**"
+      - "bridge/androidwine_native_window.c"
+      - "bridge/androidwine_native_window.h"
       - ".github/workflows/build-android-native-fixture.yml"
   pull_request:
     paths:
       - "android-native-fixture/**"
       - "docs/android-native-loader-design.md"
       - "tools/**"
+      - "runtime/**"
+      - "bridge/androidwine_native_window.c"
+      - "bridge/androidwine_native_window.h"
       - ".github/workflows/build-android-native-fixture.yml"
   workflow_dispatch:
 
@@ -49,6 +55,18 @@ jobs:
 
       - name: Test bounded host ELF inspector
         run: python3 -m unittest discover -s tools -p 'test_*.py' -v
+
+      - name: Test fixture-scoped import resolver
+        run: |
+          set -euo pipefail
+          mkdir -p build/host-tests
+          cc -std=c11 -Wall -Wextra -Werror \
+            -Itools/stubs -Ibridge -Iruntime \
+            runtime/androidwine_elf_imports.c \
+            bridge/androidwine_native_window.c \
+            tools/test_elf_import_resolver.c \
+            -o build/host-tests/test_elf_import_resolver
+          build/host-tests/test_elf_import_resolver
 
       - name: Record ELF metadata without executing the fixture
         run: |

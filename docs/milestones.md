@@ -62,7 +62,7 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 
 **Caveat:** these function symbols are directly linked into the smoke NRO. This remains a prototype, not Android's private `ANativeWindow` ABI, `libandroid.so`, Android Vulkan loader, JNI/ART, NativeActivity, or APK runtime.
 
-## 0.10 — Native module loader input inventory (not yet implemented)
+## 0.10 — Native module loader input inventory and resolver primitives (partial; no loader)
 
 - [x] Separate package/ELF inspection, ELF execution/import shims, Android-facing Vulkan dispatch, NXVK, and managed runtime as distinct gates.
 - [x] Specify conditional Android extension reporting and explicit rejection of unsupported Vulkan features.
@@ -70,7 +70,10 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 - [x] Review the supplied ELF inventory and define a candidate first-loader feature set in [docs/android-native-loader-design.md](android-native-loader-design.md); this is a design decision, not loader implementation.
 - [x] Add a host-side bounds-checked ELF64/AArch64 inventory parser and malformed/truncated-input tests; it never executes parsed inputs.
 - [x] Validate the CI-produced fixture with the parser and emit its JSON inventory (push run `39754119776`; see the Android native fixture workflow/artifact).
-- [ ] Implement only the loader/import subset required by the reviewed fixture, after deciding the `@LIBC` hooks and exact `DT_NEEDED` stubs.
+- [x] Add a fail-closed fixture import resolver for the six `ANativeWindow_*` exports and versioned `__cxa_*` hooks; unsupported atfork returns `ENOSYS`.
+- [ ] Run resolver unit tests in GitHub Actions and keep unsupported `vkGetInstanceProcAddr` unresolved unless an AndroidWine frontend is injected.
+- [ ] Implement a non-executing load-plan/relocation pass for only `R_AARCH64_RELATIVE` and eager `R_AARCH64_JUMP_SLOT`.
+- [ ] Verify Horizon executable-memory mapping and teardown before any code in the ELF is called.
 
 **Design:** [docs/android-native-loader-design.md](android-native-loader-design.md). This design is not a loader implementation or APK support.
 
