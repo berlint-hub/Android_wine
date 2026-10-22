@@ -67,9 +67,10 @@ Milestones are gates, not promises of universal compatibility. Each should have 
 - [x] Separate package/ELF inspection, ELF execution/import shims, Android-facing Vulkan dispatch, NXVK, and managed runtime as distinct gates.
 - [x] Specify conditional Android extension reporting and explicit rejection of unsupported Vulkan features.
 - [x] Build a self-authored ARM64 Android `.so` fixture in GitHub Actions and generate its dynamic dependency/symbol/relocation inventory (push run `39739901266`; PR run `39739909084`; artifact `androidwine-loader-fixture-28eb9c687bfc17279f0e12a159e772c19710d0c1`).
-- [ ] Review the artifact's exact import/relocation inventory and choose the first loader subset.
-- [ ] Add host-side bounds-checked ELF inspection tests; do not execute parsed inputs.
-- [ ] Implement only the loader/import subset required by the reviewed fixture.
+- [x] Review the supplied ELF inventory and define a candidate first-loader feature set in [docs/android-native-loader-design.md](android-native-loader-design.md); this is a design decision, not loader implementation.
+- [x] Add a host-side bounds-checked ELF64/AArch64 inventory parser and malformed/truncated-input tests; it never executes parsed inputs.
+- [x] Validate the CI-produced fixture with the parser and emit its JSON inventory (push run `39754119776`; see the Android native fixture workflow/artifact).
+- [ ] Implement only the loader/import subset required by the reviewed fixture, after deciding the `@LIBC` hooks and exact `DT_NEEDED` stubs.
 
 **Design:** [docs/android-native-loader-design.md](android-native-loader-design.md). This design is not a loader implementation or APK support.
 
