@@ -7,11 +7,13 @@ on:
     paths:
       - "android-native-fixture/**"
       - "docs/android-native-loader-design.md"
+      - "tools/**"
       - ".github/workflows/build-android-native-fixture.yml"
   pull_request:
     paths:
       - "android-native-fixture/**"
       - "docs/android-native-loader-design.md"
+      - "tools/**"
       - ".github/workflows/build-android-native-fixture.yml"
   workflow_dispatch:
 
@@ -45,6 +47,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release
           "$CMAKE" --build build/android-native-fixture --parallel 2
 
+      - name: Test bounded host ELF inspector
+        run: python3 -m unittest discover -s tools -p 'test_*.py' -v
+
       - name: Record ELF metadata without executing the fixture
         run: |
           set -euo pipefail
@@ -55,14 +60,22 @@ jobs:
           mkdir -p dist
           cp "$LIB" dist/
           "$READELF" -h -d --dyn-syms -r "$LIB" > dist/ELF-IMPORT-INVENTORY.txt
+          python3 tools/android_elf_inventory.py "$LIB" --pretty > dist/ELF-ANDROIDWINE-INVENTORY.json
           cat dist/ELF-IMPORT-INVENTORY.txt
+          cat dist/ELF-ANDROIDWINE-INVENTORY.json
           {
             echo '### Android native fixture ELF inventory'
             echo
             echo 'The self-authored library was built for metadata inspection only; it was not executed.'
             echo
+            echo '#### llvm-readelf'
             echo '```text'
             cat dist/ELF-IMPORT-INVENTORY.txt
+            echo '```'
+            echo
+            echo '#### AndroidWine bounds-checked inspector'
+            echo '```json'
+            cat dist/ELF-ANDROIDWINE-INVENTORY.json
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           sha256sum dist/libandroidwine_loader_fixture.so > dist/SHA256SUMS.txt

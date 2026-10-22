@@ -31,18 +31,32 @@ The app-facing layer must own capability negotiation; it must not blindly forwar
 - `vkGetInstanceProcAddr` and `vkGetDeviceProcAddr` need wrappers for intercepted entrypoints and forwarding for supported backend entrypoints. Extension enumeration, instance/device creation, and returned function pointers must agree; advertising an extension while returning no callable function is a failure.
 - Android hardware-buffer import and other unimplemented external-memory paths stay unadvertised and fail explicitly. A successful VI present test is not evidence for those features.
 
+## Observed fixture inventory and first loader target
+
+The user supplied `llvm-readelf` output for the fixture, SHA-256 `eb23c21bb7ff36eed6a04cbdf371a01c770898a2472306478d0d6c0797a28213`. It is an ELF64, little-endian, AArch64 `ET_DYN` shared object with SONAME `libandroidwine_loader_fixture.so`.
+
+Its direct `DT_NEEDED` list is `libandroid.so`, `libvulkan.so`, `libm.so`, `libdl.so`, and `libc.so`. The current `.dynsym` has one exported entrypoint, `androidwine_loader_fixture_probe_window`, and ten undefined function imports:
+
+- `ANativeWindow_acquire`, `ANativeWindow_release`, `ANativeWindow_getWidth`, `ANativeWindow_getHeight`, `ANativeWindow_getFormat`, `ANativeWindow_setBuffersGeometry`
+- `vkGetInstanceProcAddr`
+- `__cxa_finalize@LIBC`, `__cxa_atexit@LIBC`, `__register_atfork@LIBC`
+
+The object has `BIND_NOW` / `NOW`, so the PLT imports need eager resolution for this fixture. `.rela.dyn` contains three `R_AARCH64_RELATIVE` entries; `.rela.plt` contains ten `R_AARCH64_JUMP_SLOT` entries. It also uses `DT_GNU_HASH`, `DT_VERSYM`/`DT_VERNEED` (one required version), `DT_FINI_ARRAY` (16 bytes), and standard RELA dynamic tags. No packed Android relocations appear in this fixture's supplied inventory. These observations describe this exact library only, not arbitrary Android NDK output.
+
+A bounded first loader target can therefore be explicitly fixture-driven: ELF64 little-endian AArch64 `ET_DYN`; checked `PT_LOAD`/`PT_DYNAMIC` mapping; the observed GNU-hash, dynamic-symbol/string and symbol-version metadata; RELA handling limited to `R_AARCH64_RELATIVE` and `R_AARCH64_JUMP_SLOT`; eager resolution; and only the named SONAME/symbol allowlist. `libandroid.so` and `libvulkan.so` would map to AndroidWine shims. The fixture's `libc.so` hooks need an explicit, documented compatibility decision; `libm.so`/`libdl.so` must not silently become general Bionic implementations merely because they appear in `DT_NEEDED`. Unsupported tags, relocations, versions, imports, TLS, and dependencies must be rejected with diagnostics. This is a proposed first slice, not implemented behavior.
+
 ## Safe first fixture and evidence ladder
 
-A self-authored ARM64 Android shared-library fixture (not a commercial APK) is now built in GitHub Actions. Push run [`39739901266`](https://github.com/berlint-hub/Android_wine/actions/runs/39739901266) and PR run [`39739909084`](https://github.com/berlint-hub/Android_wine/actions/runs/39739909084) produced artifact `androidwine-loader-fixture-28eb9c687bfc17279f0e12a159e772c19710d0c1`, containing the `.so` and an `llvm-readelf` inventory. The workflow builds and inspects but does not execute the library. Review that inventory before selecting any loader features. The initial stages should be:
+A self-authored ARM64 Android shared-library fixture (not a commercial APK) is built in GitHub Actions. Push run [`39739901266`](https://github.com/berlint-hub/Android_wine/actions/runs/39739901266) and PR run [`39739909084`](https://github.com/berlint-hub/Android_wine/actions/runs/39739909084) produced artifact `androidwine-loader-fixture-28eb9c687bfc17279f0e12a159e772c19710d0c1`, containing the `.so` and an `llvm-readelf` inventory. Later push run [`39740194729`](https://github.com/berlint-hub/Android_wine/actions/runs/39740194729) produced the same content and publishes the inventory in its Actions summary. The user supplied the inventory, which is recorded above. The workflow builds and inspects but does not execute the library. Remaining evidence stages are:
 
-1. **Inspect only:** report ELF class/endianness/machine, `DT_NEEDED`, undefined dynamic symbols, symbol versions, and relocation types. Add malformed-file and bounds tests. Do not execute it.
-2. **Loader proof:** load a fixture that uses only explicitly implemented relocations and a tiny set of stubs; call one entrypoint and capture each import-resolution decision in a debug log. This is a native-module loader test, not APK support.
+1. **Inspection baseline:** the CI `llvm-readelf` inventory for the fixture is reviewed above. Implement a host-side bounds-checked inspector and malformed/truncated-input tests; do not execute parsed files.
+2. **Loader proof:** after that parser is tested, load a fixture that uses only explicitly implemented relocations and a tiny set of stubs; call one entrypoint and capture each import-resolution decision in a debug log. This is a native-module loader test, not APK support.
 3. **NDK window proof:** resolve the supported `ANativeWindow_*` imports through the AndroidWine API module, call them from the fixture, and verify balanced references/geometry on Switch.
 4. **Vulkan proof:** only after a real loader can resolve the frontend, call the app-facing proc resolver, enumerate the supported Android-facing extensions, create a VI-backed Android surface, and present a frame. Keep this separate from the current directly linked NRO evidence.
 5. **Application runtime:** NativeActivity lifecycle, JNI/ART, framework/resource services, package parsing, and app launch remain later, separate gates.
 
-The first fixture should be tiny enough that its required imports and relocations can be reviewed before implementation. Its Android-side build is an input-generation step; running an APK on a phone is not required for the Switch-side loader test.
+The checked-in fixture is intentionally small and its Android NDK build is only an input-generation step; running an APK on a phone is not required for Switch-side loader work.
 
 ## Immediate implementation decision
 
-Before writing loader code, review the self-authored `.so` fixture's generated dependency/import/relocation inventory and commit the exact supported target. Use that inventory to select the first loader subset; do not guess a broad relocation or Bionic compatibility target. Keep the parser/inspector host-testable and keep execution behind a separate opt-in loader test.
+The inventory review selected the candidate first loader scope above. A host-only metadata inspector now has strict file/segment/table bounds, GNU-hash/symbol/version/RELA parsing, and synthetic valid/malformed-input tests. The Android fixture workflow runs those tests and feeds the CI-generated `.so` to the inspector beside `llvm-readelf`; the first real-fixture CI result is still pending. The inspector does not execute ELF files. A separate loader prototype should follow only after the parser is validated against the real fixture and the `@LIBC` hook behavior and allowlisted `DT_NEEDED` handling are explicitly designed.
